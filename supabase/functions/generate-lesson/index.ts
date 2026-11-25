@@ -97,6 +97,7 @@ How to run the conversation:
 - You need, at minimum: the YouTube link (or a clear description of the video if it is not uploaded yet) and what the lesson is about. Useful if he has them: the Form, how many questions, a setting or story for the questions, anything to include or avoid, and his script if the video details are thin.
 - If he gives you everything in his first message, do not ask questions: propose the lesson straight away.
 - When the video details (title, description, length) are in the context, use them and never ask for what they already tell you.
+- The transcript matters most. When the context carries the author's transcript, every number, name, place and step in the explanation and in the video_check question must come from it, and the later questions build on the method it teaches. If he gives a video link and there is no transcript in the context, ask him once, in one line, to attach it with the "Attach the video's transcript" button under the chat (YouTube Studio, Subtitles, Download), and say he can tell you to go ahead without it. If he says he has none or to go ahead, write the lesson from the title and description and say so.
 - Once you have enough, call propose_lesson with the complete record and say in one or two sentences what you made and what he might want to change. Do not paste the lesson as text.
 - If a draft already exists and he asks for a change, call propose_lesson again with the whole record, changing only what he asked. Keep everything else exactly as it was.
 - Never mark anything as posted or live yourself; he saves it from the form.
@@ -143,6 +144,22 @@ async function videoDetails(id: string): Promise<{ title: string; description: s
     } catch (_) { /* optional */ }
   }
   return out;
+}
+
+// Caption files (.srt, .sbv, .vtt) or pasted transcripts become plain words.
+function plainTranscript(text: string): string {
+  const out: string[] = []; let last = "";
+  for (const ln of String(text || "").replace(/\r/g, "").split("\n")) {
+    let s = ln.trim();
+    if (!s || /^WEBVTT/i.test(s) || /^(Kind|Language):/i.test(s) || /^NOTE\b/.test(s)) continue;
+    if (/^\d+$/.test(s)) continue;
+    if (/\d{1,2}:\d{2}(:\d{2})?[.,]\d{3}\s*-->/.test(s)) continue;
+    if (/^\d{1,2}:\d{2}(:\d{2})?[.,]\d{3},\d{1,2}:\d{2}/.test(s)) continue;
+    s = s.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+    if (!s || s === last) continue;
+    out.push(s); last = s;
+  }
+  return out.join(" ").replace(/\s+/g, " ").trim();
 }
 
 function slugify(s: string): string {
@@ -199,7 +216,8 @@ Deno.serve(async (req) => {
   if (details.title) context.push(`Video title: ${details.title}`);
   if (details.duration) context.push(`Video length: ${details.duration}`);
   if (details.description) context.push(`Video description:\n${details.description}`);
-  if (body.script) context.push(`The author's script or transcript of the video:\n${body.script}`);
+  const script = plainTranscript(body.script || "").slice(0, 24000);
+  if (script) context.push(`The author's transcript of the video (the words spoken in it):\n${script}`);
   context.push(`Lessons already on the site (number, title):\n` + (existing.length ? existing.map((l) => `${l.number} ${l.title}`).join("\n") : "none yet"));
   context.push(`Next free lesson number in each topic:\n` + Object.keys(next).map((t) => `Topic ${t} ${TOPICS[Number(t)]}: ${next[Number(t)]}`).join("\n"));
   if (body.draft) context.push(`The draft currently in the author's form (JSON). If he asks for changes, change only what he asks and keep its number:\n${JSON.stringify(body.draft)}`);

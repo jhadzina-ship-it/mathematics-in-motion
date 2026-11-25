@@ -64,7 +64,9 @@
     .chat-row textarea { flex: 1; min-width: 0; min-height: 56px; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; resize: vertical; }
     .chat-row textarea:focus, .script-box textarea:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
     .chat-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    .script-box > summary { cursor: pointer; font-size: .85rem; color: var(--ink-2); }
+    .script-box summary { cursor: pointer; font-size: .85rem; color: var(--ink-2); }
+    .script-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+    .script-row .btn { cursor: pointer; }
     .script-box textarea { width: 100%; margin-top: 6px; min-height: 80px; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
     .linkish { background: none; border: 0; padding: 0; font: inherit; font-size: .85rem; color: var(--blue); cursor: pointer; text-decoration: underline; }
     #view-lesson + .linkish { margin-left: 14px; }
@@ -234,7 +236,17 @@
               <button class="btn btn-primary" type="button" id="chat-send">Send</button>
             </div>
             <div class="chat-foot">
-              <details class="script-box" style="flex:1;min-width:200px"><summary>Attach your script or transcript (optional, makes the questions match the video)</summary><textarea id="ai-script" placeholder="The words spoken in the video…"></textarea></details>
+              <div class="script-box" style="flex:1;min-width:200px">
+                <div class="script-row">
+                  <label class="btn btn-sm" for="ai-script-file">Attach the video's transcript</label>
+                  <input type="file" id="ai-script-file" accept=".srt,.sbv,.vtt,.txt" class="sr-only">
+                  <span class="muted small" id="ai-script-state">Not attached. The assistant uses it to write the explanation and questions from what you actually say in the video.</span>
+                </div>
+                <details><summary>Where to get it, or paste the words instead</summary>
+                  <p class="muted small" style="margin:6px 0">YouTube Studio → Content → open the video → <strong>Subtitles</strong> → on the <em>English (automatic)</em> row open the ⋮ menu → <strong>Download</strong> (.srt or .sbv). Or on the video page press <em>…more</em> → <em>Show transcript</em>, copy it, and paste it here. Your own script works just as well.</p>
+                  <textarea id="ai-script" placeholder="The words spoken in the video…"></textarea>
+                </details>
+              </div>
               <button class="linkish" type="button" id="chat-reset">Start over</button>
             </div>
             <div class="status" id="ai-status"></div>
@@ -406,6 +418,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
-  <script src="assets/admin.js?v=11"></script>
+  <script src="assets/admin.js?v=12"></script>
 </body>
 </html>

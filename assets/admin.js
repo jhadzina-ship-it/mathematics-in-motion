@@ -574,6 +574,35 @@
     addMsg('sys', 'Draft below. Check the answers, then Post as Live, Save as draft, or ask for a change.');
   }
   var POST_RE = /^(please\s+)?(post|publish|go\s+live|make\s+it\s+live|put\s+it\s+(up|live|online))(\s+(it|this|that|the\s+lesson|now))?(\s+(as\s+)?live)?(\s+now)?[.!\s]*$/i;
+  // Turn an .srt / .sbv / .vtt caption file (or pasted transcript) into plain words.
+  function plainTranscript(text) {
+    var lines = String(text || '').replace(/\r/g, '').split('\n'), out = [], last = '';
+    lines.forEach(function (ln) {
+      var s = ln.trim();
+      if (!s || /^WEBVTT/i.test(s) || /^(Kind|Language):/i.test(s) || /^NOTE\b/.test(s)) return;
+      if (/^\d+$/.test(s)) return;                                           // srt index
+      if (/\d{1,2}:\d{2}(:\d{2})?[.,]\d{3}\s*-->/.test(s)) return;         // srt / vtt timing
+      if (/^\d{1,2}:\d{2}(:\d{2})?[.,]\d{3},\d{1,2}:\d{2}/.test(s)) return;  // sbv timing
+      s = s.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/\s+/g, ' ').trim();
+      if (!s || s === last) return;                                           // auto captions repeat lines
+      out.push(s); last = s;
+    });
+    return out.join(' ').replace(/\s+/g, ' ').trim();
+  }
+  function scriptState(note) {
+    var words = $('ai-script').value.trim() ? $('ai-script').value.trim().split(/\s+/).length : 0;
+    $('ai-script-state').textContent = words ? 'Transcript attached' + (note ? ' from ' + note : '') + ': ' + words + ' words. It goes to the assistant with every message.' : 'Not attached. The assistant uses it to write the explanation and questions from what you actually say in the video.';
+    $('ai-script-state').style.color = words ? 'var(--ok)' : '';
+  }
+  $('ai-script-file').addEventListener('change', function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () { $('ai-script').value = plainTranscript(rd.result); scriptState(f.name); };
+    rd.readAsText(f);
+    this.value = '';
+  });
+  $('ai-script').addEventListener('input', function () { scriptState(''); });
+
   function send() {
     var text = $('chat-input').value.trim();
     if (!text) return;
@@ -603,7 +632,7 @@
 
     var draft = $('f-title').value.trim() ? collect() : null;
     var payload = {
-      messages: chat, draft: draft, script: $('ai-script').value.trim(), topic_number: activeTopic || null, topic_name: activeTopic ? topicName(activeTopic) : null,
+      messages: chat, draft: draft, script: plainTranscript($('ai-script').value).slice(0, 24000), topic_number: activeTopic || null, topic_name: activeTopic ? topicName(activeTopic) : null,
       existing: lessons.map(function (l) {
         return { number: l.number, title: l.title, chapter: l.chapter || chapterOf(lessonTopic(l)), syllabus_topic: lessonTopic(l) || null, slug: l.slug };
       })
@@ -627,7 +656,8 @@
   }
   $('chat-send').addEventListener('click', send);
   $('chat-input').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-  $('chat-reset').addEventListener('click', function () { greet(activeTopic); $('chat-input').focus(); });
+  $('chat-reset').addEventListener('click', function () {
+    $('ai-script').value = ''; scriptState(''); greet(activeTopic); $('chat-input').focus(); });
   $('chips').querySelectorAll('[data-say]').forEach(function (c) {
     c.addEventListener('click', function () {
       var box = $('chat-input'), say = c.getAttribute('data-say');
