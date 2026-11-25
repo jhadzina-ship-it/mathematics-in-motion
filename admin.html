@@ -112,6 +112,33 @@
     .q-head .kind select { width: auto; padding: 5px 10px; font-size: .85rem; }
     .upload { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .upload input[type=file] { font: inherit; font-size: .85rem; }
+    /* topic tree (branches) and the post panel that opens inside a branch */
+    .tree { display: grid; gap: 10px; }
+    .branch { border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .branch > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 14px 16px; font-weight: 600; }
+    .branch > summary::-webkit-details-marker { display: none; }
+    .branch > summary:hover { background: var(--panel); border-radius: 12px; }
+    .branch .t-num { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; font-size: .85rem; font-weight: 700; display: grid; place-items: center; flex: none; }
+    .branch .t-name { flex: 1; min-width: 0; }
+    .branch .t-name small { display: block; font-weight: 400; color: var(--ink-2); font-size: .82rem; }
+    .branch .t-count { font-weight: 400; font-size: .85rem; color: var(--ink-2); white-space: nowrap; }
+    .branch.empty > summary .t-num { background: var(--blue-chip); color: var(--blue-dark); }
+    .branch[open] > summary { border-bottom: 1px solid var(--line); }
+    .branch-body { padding: 10px 16px 14px 60px; }
+    @media (max-width: 600px) { .branch-body { padding-left: 16px; } }
+    .sub { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; }
+    .sub:hover { background: var(--panel); }
+    .sub.active { background: var(--blue-soft); box-shadow: inset 3px 0 0 var(--blue); }
+    .sub .n { font-weight: 700; color: var(--blue-dark); width: 44px; flex: none; }
+    .sub .ttl { flex: 1; min-width: 0; }
+    .sub .meta { color: var(--ink-2); font-size: .85rem; white-space: nowrap; }
+    .sub a.open { color: var(--blue); font-weight: 600; }
+    .branch-hint { font-size: .85rem; color: var(--ink-2); margin: 0 0 8px; }
+    .add-sub { margin-top: 10px; }
+    .slot { margin-top: 12px; }
+    .post-panel { border: 2px solid var(--blue); border-radius: 12px; padding: 16px; background: var(--blue-soft); }
+    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+    .post-panel .card { background: #fff; }
   </style>
 </head>
 <body>
@@ -136,8 +163,8 @@
     <section class="hero" style="padding-bottom:8px">
       <div class="wrap">
         <div class="eyebrow">Author tools</div>
-        <h1>Post a lesson</h1>
-        <p class="lead muted">Tell the assistant about your video. It writes the draft, you check it, and one press puts the lesson on the site.</p>
+        <h1>Your lessons</h1>
+        <p class="lead muted">Topics are the branches of the syllabus. Open one and add a subtopic: the assistant writes it from your video, you check it, and one press puts it on the site.</p>
       </div>
     </section>
 
@@ -167,42 +194,22 @@
 
     <section id="editor" class="hidden" style="padding-top:0">
       <div class="wrap">
-        <div class="callout howto">
-          <strong>How to post</strong>
-          <ol>
-            <li>Tell the assistant about the video and paste the YouTube link.</li>
-            <li>Check the draft preview it shows you, especially the answers.</li>
-            <li>Press <em>Post as Live</em> when the lesson is ready for students, or save it as a draft.</li>
-          </ol>
-        </div>
+        <p class="help" style="margin:0 0 14px;font-size:.95rem">Open a topic, then <strong>add a subtopic</strong>. Each subtopic is one video lesson. Students take the subtopics of a topic in order, so the next number is given automatically.</p>
+        <div id="tree" class="tree"></div>
 
-        <div class="admin-grid">
-          <aside class="card side" id="side">
-            <div class="side-head">
-              <strong>Lessons</strong>
-              <div class="btns">
-                <button class="btn btn-ghost btn-sm" type="button" id="new-lesson">+ New lesson</button>
-                <button class="btn btn-ghost btn-sm side-toggle" type="button" id="side-toggle" aria-expanded="true" aria-controls="side-body">Hide</button>
-              </div>
-            </div>
-            <div id="side-body">
-              <p class="help" style="margin-top:6px">By syllabus topic. Click a lesson to open it.</p>
-              <div class="topics" id="topic-tree"></div>
-              <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
-              <p class="small muted" id="whoami"></p>
-              <button class="btn btn-ghost btn-sm" type="button" id="signout">Sign out</button>
-            </div>
-          </aside>
-
-          <div>
+        <div id="post-panel" class="post-panel hidden">
+          <div class="panel-head">
+            <div><div class="eyebrow" id="panel-topic"></div><h3 id="panel-title" style="margin:2px 0 0"></h3></div>
+            <button class="btn btn-ghost btn-sm" type="button" id="panel-close">Close</button>
+          </div>
           <div class="card" id="ai-panel" style="border-color:var(--blue)">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-              <h3 style="margin:0">Post with the assistant</h3>
+              <h3 style="margin:0">Add this subtopic with the assistant</h3>
               <span class="pill">Nothing goes live until you say so</span>
             </div>
             <div id="chat-log" class="chat-log" aria-live="polite"></div>
             <div class="chips" id="chips">
-              <button class="chip" type="button" data-say="Post a new video: ">Post a new video</button>
+              <button class="chip" type="button" data-say="New video: ">New video</button>
               <button class="chip" type="button" data-say="Make the questions harder.">Make the questions harder</button>
               <button class="chip" type="button" data-say="Add one more question.">Add one more question</button>
               <button class="chip" type="button" data-say="Change question 3: ">Change question 3</button>
@@ -331,8 +338,9 @@
               </div>
             </div>
           </form>
-          </div>
         </div>
+
+        <p class="small muted" style="margin-top:28px"><span id="whoami"></span> &middot; <button class="linkish" type="button" id="signout">Sign out</button></p>
       </div>
     </section>
   </main>
@@ -386,6 +394,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
-  <script src="assets/admin.js?v=4"></script>
+  <script src="assets/admin.js?v=5"></script>
 </body>
 </html>

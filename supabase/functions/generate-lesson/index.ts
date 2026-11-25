@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) return json({ error: "ANTHROPIC_API_KEY is not set in the function's secrets." }, 500);
 
-  let body: { messages?: ChatMessage[]; draft?: Lesson | null; script?: string; existing?: Existing[] };
+  let body: { messages?: ChatMessage[]; draft?: Lesson | null; script?: string; existing?: Existing[]; topic_number?: number };
   try { body = await req.json(); } catch { return json({ error: "Bad request body." }, 400); }
   const history = (body.messages || []).filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim());
   if (!history.length || history[history.length - 1].role !== "user") return json({ error: "Send at least one user message." }, 400);
@@ -202,6 +202,8 @@ Deno.serve(async (req) => {
   context.push(`Lessons already on the site (number, title):\n` + (existing.length ? existing.map((l) => `${l.number} ${l.title}`).join("\n") : "none yet"));
   context.push(`Next free lesson number in each topic:\n` + Object.keys(next).map((t) => `Topic ${t} ${TOPICS[Number(t)]}: ${next[Number(t)]}`).join("\n"));
   if (body.draft) context.push(`The draft currently in the author's form (JSON). If he asks for changes, change only what he asks and keep its number:\n${JSON.stringify(body.draft)}`);
+  const forced = Number(body.topic_number) >= 1 && Number(body.topic_number) <= 14 ? Number(body.topic_number) : 0;
+  if (forced) context.push(`The author opened Topic ${forced} (${TOPICS[forced]}) and is adding a subtopic inside it. The lesson MUST belong to topic ${forced}: syllabus_topic ${forced}, number ${body.draft?.number || next[forced]}. Do not ask which topic; if the video seems to belong elsewhere, say so in one sentence but still place it here.`);
 
   const messages: Anthropic.Beta.BetaMessageParam[] = history.map((m) => ({ role: m.role, content: m.content }));
   const last = messages[messages.length - 1];
@@ -237,11 +239,12 @@ Deno.serve(async (req) => {
         const l = block.input as Lesson;
         if (l && typeof l.title === "string" && Array.isArray(l.questions)) {
           l.slug = slugify(l.slug || l.title);
-          const t = Math.min(14, Math.max(1, Number(l.syllabus_topic) || 1));
+          const t = forced || Math.min(14, Math.max(1, Number(l.syllabus_topic) || 1));
           l.syllabus_topic = t;
           l.topic = TOPICS[t];
           l.chapter = `Topic ${t} · ${TOPICS[t]}`;
-          if (!/^\d+\.\d+$/.test(l.number || "")) l.number = next[t];
+          const keep = body.draft?.number && String(body.draft.number).startsWith(t + ".") ? String(body.draft.number) : "";
+          if (!/^\d+\.\d+$/.test(l.number || "") || !String(l.number).startsWith(t + ".")) l.number = keep || next[t];
           if (!l.duration && details.duration) l.duration = details.duration;
           l.questions = l.questions.map((q, i) => ({ ...q, kind: q.kind === "video_check" ? "video_check" : "calculation", position: i + 1, figure: "" }));
           lesson = { ...l, video_id: id, status: "draft" };
