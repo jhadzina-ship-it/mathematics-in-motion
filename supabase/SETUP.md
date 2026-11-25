@@ -20,17 +20,17 @@ Takes about 15 minutes. Costs nothing: everything below is on Supabase's free pl
 
 ## 4. Tell the site where the project is
 
-1. **Project Settings** (gear icon) → **API**. Copy the **Project URL** and the **anon public** key.
+1. **Project Settings** (gear icon) → **API Keys**. Copy the **publishable** key (starts with `sb_publishable_`). The Project URL is on the project home page, `https://<ref>.supabase.co`. Never use the **secret** key in the site.
 2. Open `assets/config.js` in the site and paste them in:
 
 ```js
 window.MIM_CONFIG = {
   supabaseUrl: "https://xxxxxxxxxxxx.supabase.co",
-  supabaseAnonKey: "eyJ..."
+  supabaseAnonKey: "sb_publishable_..."
 };
 ```
 
-3. Commit the change. The anon key is designed to be public: the row-level security rules in `schema.sql` are what decide that visitors can only read, and only the signed-in author can write.
+3. Commit the change. The publishable key is designed to be public: the row-level security rules in `schema.sql` are what decide that visitors can only read, and only the signed-in author can write.
 
 ## 5. Try it
 
