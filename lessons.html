@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lessons · Mathematics in Motion</title>
+  <meta name="description" content="The lesson library for Mathematics in Motion, organised by chapter and topic.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="var(--spark)" stroke-width="2.4" stroke-linecap="round"/></svg>
+        Mathematics in Motion
+      </a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="textbooks.html">Textbooks</a>
+        <a href="approach.html">Approach</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="padding-bottom:8px">
+      <div class="wrap">
+        <div class="eyebrow">Lesson library</div>
+        <h1>Lessons</h1>
+        <p class="lead muted">One idea per lesson. One video per idea. Lessons marked "planned" are scripted and waiting to be animated.</p>
+      </div>
+    </section>
+
+    <div id="chapters"><section><div class="wrap"><p class="muted">Loading lessons…</p></div></section></div>
+
+    <section>
+      <div class="wrap">
+        <h2>Later topics</h2>
+        <p class="muted">Mathematics in Motion is not only geometry. These topic areas follow once the first chapters are complete.</p>
+        <div class="grid grid-3" style="margin-top:18px">
+          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Geometry &amp; Transformations</h3><p class="muted small">Reflections, rotations, enlargements and similar triangles.</p></div>
+          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Algebra &amp; Functions</h3><p class="muted small">Graphs that move as the equation changes.</p></div>
+          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Calculus</h3><p class="muted small">Gradients, rates of change and areas, starting from motion.</p></div>
+          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Statistics &amp; Probability</h3><p class="muted small">Simulations you can watch converge.</p></div>
+          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Mathematical Modelling</h3><p class="muted small">Real-world situations, from Victoria Falls to a car accelerating.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Mathematics in Motion · Jephias Hadzina</span>
+      <span>Built as a static site on GitHub Pages. <a href="about.html">Contact</a> · <a href="admin.html">Author sign-in</a></span>
+    </div>
+  </footer>
+  <script src="assets/config.js"></script>
+  <script src="content/lessons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    MIM.loadLessons().then(function (list) {
+      var chapters = {};
+      var order = [];
+      list.forEach(function (l) {
+        if (l.status === 'draft') return;
+        var key = l.chapter || l.topic || 'Other';
+        if (!chapters[key]) { chapters[key] = []; order.push(key); }
+        chapters[key].push(l);
+      });
+      // Chapters with a live lesson first, then by chapter name.
+      order.sort(function (a, b) {
+        var la = chapters[a].some(function (l) { return l.status === 'live'; }), lb = chapters[b].some(function (l) { return l.status === 'live'; });
+        return la === lb ? a.localeCompare(b) : (la ? -1 : 1);
+      });
+      document.getElementById('chapters').innerHTML = order.map(function (key) {
+        var items = chapters[key].sort(function (a, b) { return String(a.number).localeCompare(String(b.number), undefined, { numeric: true }); });
+        return '<section><div class="wrap"><h2>' + MIM.esc(key) + '</h2><div class="grid" style="margin-top:18px">' +
+          items.map(MIM.lessonCard).join('') + '</div></div></section>';
+      }).join('') || '<section><div class="wrap"><p class="muted">No lessons yet.</p></div></section>';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Approach · Mathematics in Motion</title>
+  <meta name="description" content="The teaching approach behind Mathematics in Motion and the mastery-learning roadmap borrowed from Khan Academy, Kolibri and Moodle.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="var(--spark)" stroke-width="2.4" stroke-linecap="round"/></svg>
+        Mathematics in Motion
+      </a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="textbooks.html">Textbooks</a>
+        <a href="approach.html">Approach</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="padding-bottom:8px">
+      <div class="wrap">
+        <div class="eyebrow">Teaching approach</div>
+        <h1>Show the motion. Then ask for proof.</h1>
+        <p class="lead muted">Most geometry is taught as a list of facts to memorise. Mathematics in Motion animates the figure so the student sees the result happen, then checks that they can use it before moving on.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Three design rules</h2>
+        <div class="grid grid-3" style="margin-top:18px">
+          <div class="card"><div class="num">1</div><h3>One idea per video</h3><p class="muted">Under two minutes. If a theorem needs a second idea, that is a second lesson. Short videos get rewatched; long ones get skipped.</p></div>
+          <div class="card"><div class="num">2</div><h3>The figure moves</h3><p class="muted">A point slides along an arc and the angle does not change. A chord rotates until it becomes a tangent. The motion <em>is</em> the explanation.</p></div>
+          <div class="card"><div class="num">3</div><h3>Answers, not choices</h3><p class="muted">Students type a number or an expression. No multiple choice, so a guess cannot pass for understanding. Hints and worked solutions open when needed.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>The mastery path</h2>
+          <p class="muted">The roadmap for every lesson once accounts exist. It borrows the "restrict access" gating of Moodle, the "M of N" mastery rule of Kolibri, and Khan Academy's habit of making the rule visible to the student.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><div><h3>Watch</h3><p class="muted">The animation, with the key question posed on screen.</p></div></div>
+          <div class="step"><div><h3>Worked examples</h3><p class="muted">Two or three examples with every step shown. At least three per skill, so a struggling student can always see one more.</p></div></div>
+          <div class="step"><div><h3>Practise</h3><p class="muted">Questions drawn from a pool, so a retry gets new numbers and a new diagram. Instant feedback, one hint per miss.</p></div></div>
+          <div class="step locked"><div><h3>Mastery check</h3><p class="muted">Five fresh questions. <strong>4 of 5 opens the next lesson.</strong> The rule is printed on the page, not hidden.</p></div></div>
+        </div>
+        <div class="callout" style="margin-top:22px">
+          <strong>What is live today.</strong> Watch and Practise, scored in the browser for the current visit. Worked examples are inside each question. The mastery check and gating need saved progress, which needs accounts.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Borrowed from systems that work</h2>
+        <div class="table-scroll" style="margin-top:16px">
+          <table>
+            <thead><tr><th>Pattern</th><th>Seen in</th><th>What it means here</th></tr></thead>
+            <tbody>
+              <tr><td>Explicit mastery rule</td><td>Khan Academy levels, Kolibri "M of N" (default 3 of 5)</td><td>One sentence the student can read: 4 of 5 on a fresh set.</td></tr>
+              <tr><td>Gating</td><td>Moodle "restrict access", Open edX prerequisites</td><td>The next lesson stays locked and says what opens it.</td></tr>
+              <tr><td>Question pools</td><td>Khan Academy, Kolibri exercises</td><td>Today's four questions become four of a larger pool with varied numbers.</td></tr>
+              <tr><td>In-video checkpoints</td><td>H5P Interactive Video in Moodle</td><td>The video pauses at a question; a miss rewinds to the relevant moment. Planned after gating.</td></tr>
+              <tr><td>Teacher view</td><td>Kolibri coach reports</td><td>Who is stuck, on which skill, after how many attempts.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Roadmap</h2>
+        <div class="grid grid-3" style="margin-top:18px">
+          <div class="card"><span class="pill pill-green">Now</span><h3 style="margin-top:.6em">Static showcase</h3><p class="muted small">This site. Video, practice questions, textbook alignment. Free to host on GitHub Pages. Jephias edits content as plain HTML.</p></div>
+          <div class="card"><span class="pill pill-amber">Next</span><h3 style="margin-top:.6em">Gated path with accounts</h3><p class="muted small">Student sign-in, saved progress, the 4-of-5 mastery check and a teacher gradebook. A free-tier backend such as Supabase keeps the cost at zero. Parent consent is required for students under 13.</p></div>
+          <div class="card"><span class="pill pill-grey">Later</span><h3 style="margin-top:.6em">Checkpoints and skill levels</h3><p class="muted small">Questions pinned to moments in the video, Khan-style skill levels across a chapter, and an AI tutor that gives hints but never the answer.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Mathematics in Motion · Jephias Hadzina</span>
+      <span>Built as a static site on GitHub Pages. <a href="about.html">Contact</a> · <a href="admin.html">Author sign-in</a></span>
+    </div>
+  </footer>
+  <script src="assets/site.js"></script>
+</body>
+</html>

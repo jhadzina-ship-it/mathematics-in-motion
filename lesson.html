@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson · Mathematics in Motion</title>
+  <meta name="description" content="An animated mathematics lesson with practice questions checked in your browser.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="var(--spark)" stroke-width="2.4" stroke-linecap="round"/></svg>
+        Mathematics in Motion
+      </a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="textbooks.html">Textbooks</a>
+        <a href="approach.html">Approach</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="lesson">
+    <section class="hero"><div class="wrap"><p class="muted">Loading lesson…</p></div></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Mathematics in Motion · Jephias Hadzina</span>
+      <span>Built as a static site on GitHub Pages. <a href="about.html">Contact</a> · <a href="admin.html">Author sign-in</a></span>
+    </div>
+  </footer>
+  <script src="assets/config.js"></script>
+  <script src="content/lessons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+  (function () {
+    var esc = MIM.esc;
+    var slug = MIM.param('id');
+    var main = document.getElementById('lesson');
+
+    function figure(src, alt) {
+      return src ? '<div class="figure"><img src="' + esc(src) + '" alt="' + esc(alt) + '" loading="lazy"></div>' : '';
+    }
+
+    function question(q, i) {
+      var id = 'q' + (i + 1);
+      var label = q.unit === '°' ? '°' : (q.unit ? ' ' + esc(q.unit) : '');
+      return '<div class="question" data-answer="' + esc(q.answer) + '" data-tolerance="' + esc(q.tolerance == null ? 0.01 : q.tolerance) + '" data-hint="' + esc(q.hint) + '">' +
+        '<div class="question-grid"><div>' +
+        '<span class="pill">Question ' + (i + 1) + '</span>' +
+        '<p style="margin-top:.8em">' + esc(q.prompt) + '</p>' +
+        '<div class="answer-row"><label class="sr-only" for="' + id + '">Your answer</label><input id="' + id + '" inputmode="decimal" placeholder="?">' + label +
+        '<button class="btn btn-primary" type="button">Check</button></div>' +
+        '<div class="feedback" role="status"></div>' +
+        (q.solution ? '<details><summary>Worked solution</summary><p>' + esc(q.solution) + '</p></details>' : '') +
+        '</div>' + figure(q.figure, 'Figure for question ' + (i + 1)) + '</div></div>';
+    }
+
+    function render(l) {
+      document.title = l.number + ' · ' + l.title + ' · Mathematics in Motion';
+      var hasVideo = /^[A-Za-z0-9_-]{11}$/.test(l.video_id || '');
+      var html =
+        '<section class="hero" style="padding-bottom:16px"><div class="wrap">' +
+        '<div class="eyebrow">' + esc(l.topic) + ' · Lesson ' + esc(l.number) + (l.level ? ' · ' + esc(l.level) : '') + '</div>' +
+        '<h1>' + esc(l.title) + '</h1>' +
+        (l.hook ? '<p class="lead muted">' + esc(l.hook) + '</p>' : '') +
+        '</div></section>' +
+
+        '<section style="padding-top:0"><div class="wrap">' +
+        '<div class="video-frame" data-video-id="' + esc(l.video_id || '') + '" data-video-title="' + esc(l.title) + '">' +
+        '<div class="video-placeholder"><div><div class="play"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#111"/></svg></div>' +
+        '<strong>Video: ' + esc(l.title) + (l.duration ? ' (' + esc(l.duration) + ')' : '') + '</strong>' +
+        (hasVideo ? '' : '<p class="small" style="opacity:.8;margin:.4em 0 0">The video for this lesson has not been linked yet.</p>') +
+        '</div></div></div>' +
+        (hasVideo ? '<p class="muted small" style="margin-top:10px">Watch on <a href="https://www.youtube.com/watch?v=' + esc(l.video_id) + '" target="_blank" rel="noopener">YouTube</a> if the player does not load.</p>' : '') +
+        '</div></section>';
+
+      if (l.theorem || l.explanation) {
+        html += '<section><div class="wrap"><div class="theorem"><div>' +
+          '<div class="eyebrow">The idea</div>' +
+          (l.theorem ? '<blockquote>' + esc(l.theorem) + '</blockquote>' : '') +
+          (l.explanation ? '<p class="muted small" style="margin-top:12px">' + esc(l.explanation) + '</p>' : '') +
+          '</div>' + figure(l.figure, 'Figure for ' + l.title) + '</div></div></section>';
+      }
+
+      if (l.questions && l.questions.length) {
+        html += '<section id="practice"><div class="wrap">' +
+          '<div class="section-head"><h2>Practice</h2><p class="muted">Type your answer and press Check. A hint appears after a miss, and the worked solution opens after two.</p></div>' +
+          l.questions.map(question).join('') +
+          '<div class="score" data-score><div><strong><span data-score-correct>0</span> / <span data-score-total>' + l.questions.length + '</span></strong> correct</div>' +
+          '<div data-score-message>Answer every question to finish the lesson.</div></div>' +
+          '<p class="muted small" style="margin-top:12px">Scores stay in your browser for this visit only. Saved progress and a teacher view are on the <a href="approach.html">roadmap</a>.</p>' +
+          '</div></section>';
+      }
+
+      html += '<section><div class="wrap grid grid-2">' +
+        '<div class="card"><h3>Where this sits in the textbook</h3><p class="muted">' +
+        (l.us_name ? 'US textbooks call this: <em>' + esc(l.us_name) + '</em>. ' : '') +
+        'See the <a href="textbooks.html">textbook alignment</a> for chapter and section.</p></div>' +
+        '<div class="card"><h3>More lessons</h3><p class="muted">Back to the <a href="lessons.html">lesson library</a>.</p></div>' +
+        '</div></section>';
+
+      main.innerHTML = html;
+      MIM_mountVideos();
+      MIM_mountQuestions();
+    }
+
+    MIM.loadLessons().then(function (list) {
+      var l = list.filter(function (x) { return x.slug === slug; })[0] || list.filter(function (x) { return x.status === 'live'; })[0];
+      if (!l) { main.innerHTML = '<section><div class="wrap"><h1>No lesson found</h1><p><a href="lessons.html">Back to lessons</a></p></div></section>'; return; }
+      render(l);
+    });
+  })();
+  </script>
+</body>
+</html>

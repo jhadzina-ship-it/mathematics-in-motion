@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Textbook alignment · Mathematics in Motion</title>
+  <meta name="description" content="How Mathematics in Motion lessons line up with enVision Geometry, Big Ideas Math Geometry and HMH Into Geometry.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="var(--spark)" stroke-width="2.4" stroke-linecap="round"/></svg>
+        Mathematics in Motion
+      </a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="textbooks.html">Textbooks</a>
+        <a href="approach.html">Approach</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="padding-bottom:8px">
+      <div class="wrap">
+        <div class="eyebrow">For teachers</div>
+        <h1>Where each lesson fits your textbook</h1>
+        <p class="lead muted">The videos were written for the Zimbabwe O-Level syllabus (Forms 3 and 4). US geometry books teach the same results, sometimes under different names and always in a different order. This page maps one to the other.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Three widely adopted US geometry textbooks</h2>
+        <p class="muted">Each is the Geometry volume of an Algebra 1 / Geometry / Algebra 2 series. Older editions are cheap second-hand and the chapters in question change little between editions.</p>
+        <div class="grid grid-3" style="margin-top:18px">
+          <div class="card">
+            <span class="pill">Savvas</span>
+            <h3 style="margin-top:.6em">enVision Geometry</h3>
+            <p class="muted small">Part of enVision A|G|A. Problem-based, visual lessons. EdReports rated the 2018 edition as meeting expectations for alignment to the Common Core standards.</p>
+          </div>
+          <div class="card">
+            <span class="pill">Big Ideas Learning</span>
+            <h3 style="margin-top:.6em">Big Ideas Math: Geometry</h3>
+            <p class="muted small">Larson and Boswell. Distributed by National Geographic Learning / Cengage. A widely used author team; check the EdReports rating for the edition you hold.</p>
+          </div>
+          <div class="card">
+            <span class="pill">HMH</span>
+            <h3 style="margin-top:.6em">HMH Into Geometry</h3>
+            <p class="muted small">Part of Into AGA (2020). EdReports: meets expectations for alignment, with built-in formative checks and intervention suggestions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Alignment table</h2>
+        <p class="muted">Chapter-level placements until each one is checked against a physical copy. <span class="pill pill-amber">Confirm</span> marks a row still to be verified; the author ticks it off from the Admin page.</p>
+        <div class="table-scroll" style="margin-top:16px">
+          <table>
+            <thead>
+              <tr>
+                <th>Lesson</th>
+                <th>US textbook name for the result</th>
+                <th>enVision Geometry</th>
+                <th>Big Ideas Math Geometry</th>
+                <th>HMH Into Geometry</th>
+                <th>Standard</th>
+              </tr>
+            </thead>
+            <tbody id="alignment"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="callout blue">
+          <strong>How to use this page.</strong> Pick one book's table of contents as the spine. Then a lesson on this site can be renumbered to match, so a teacher can say "watch 9-5 tonight" and the student lands on the right video. The Zimbabwe syllabus numbering stays in the lesson metadata for students at home.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap grid grid-2">
+        <div class="card">
+          <h3>Same theorem, two names</h3>
+          <p class="muted small">Commonwealth syllabuses (Zimbabwe, the UK, Singapore) say <em>alternate segment theorem</em>; US texts say <em>the angle formed by a tangent and a chord is half the intercepted arc</em>. Angles of elevation are named the same on both sides, but US books meet them in a right-triangle trigonometry chapter rather than a separate topic.</p>
+        </div>
+        <div class="card">
+          <h3>Open alternative</h3>
+          <p class="muted small">If a school uses openly licensed materials instead of a commercial book, Illustrative Mathematics Geometry covers the same results, and the mapping above applies by theorem name.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Mathematics in Motion · Jephias Hadzina</span>
+      <span>Built as a static site on GitHub Pages. <a href="about.html">Contact</a> · <a href="admin.html">Author sign-in</a></span>
+    </div>
+  </footer>
+  <script src="assets/config.js"></script>
+  <script src="content/lessons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    MIM.loadLessons().then(function (list) {
+      var esc = MIM.esc;
+      var rows = list.filter(function (l) { return l.status !== 'draft'; })
+        .sort(function (a, b) { return String(a.number).localeCompare(String(b.number), undefined, { numeric: true }); })
+        .map(function (l) {
+          var confirm = l.textbook_confirmed ? '' : ' <span class="pill pill-amber">Confirm</span>';
+          var name = l.status === 'live' ? '<a href="lesson.html?id=' + encodeURIComponent(l.slug) + '">' + esc(l.title) + '</a>' : esc(l.title);
+          return '<tr><td><strong>' + esc(l.number) + '</strong> ' + name + ' ' + MIM.statusPill(l.status) + '</td>' +
+            '<td>' + esc(l.us_name) + '</td>' +
+            '<td>' + esc(l.textbook_envision) + confirm + '</td>' +
+            '<td>' + esc(l.textbook_bigideas) + confirm + '</td>' +
+            '<td>' + esc(l.textbook_hmh) + confirm + '</td>' +
+            '<td>' + esc(l.standard) + '</td></tr>';
+        });
+      document.getElementById('alignment').innerHTML = rows.join('') || '<tr><td colspan="6" class="muted">No lessons yet.</td></tr>';
+    });
+  </script>
+</body>
+</html>

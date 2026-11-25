@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Mathematics in Motion</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .admin-grid { display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 860px) { .admin-grid { grid-template-columns: 1fr; } }
+    .list a { display: block; padding: 10px 12px; border-radius: 10px; color: var(--ink); }
+    .list a:hover, .list a.active { background: var(--accent-soft); text-decoration: none; }
+    .list .small { display: block; color: var(--ink-soft); }
+    form label { display: block; font-weight: 600; font-size: .9rem; margin: 14px 0 4px; }
+    form input[type=text], form input[type=number], form input[type=url], form textarea, form select {
+      width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink);
+    }
+    form textarea { min-height: 80px; resize: vertical; }
+    form input:focus, form textarea:focus, form select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    @media (max-width: 600px) { .row, .row-3 { grid-template-columns: 1fr; } }
+    .q { border: 1px dashed var(--line); border-radius: 12px; padding: 14px 16px; margin-top: 14px; }
+    .q-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .q-head .btns { display: flex; gap: 6px; }
+    .btn-sm { padding: 6px 12px; font-size: .85rem; }
+    .btn-danger { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+    .status { margin: 14px 0; padding: 12px 14px; border-radius: 10px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: var(--ok-soft); color: var(--ok); }
+    .status.no { background: var(--warn-soft); color: var(--warn); }
+    .hidden { display: none !important; }
+    .upload { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .upload input[type=file] { font: inherit; font-size: .85rem; }
+    .help { font-size: .85rem; color: var(--ink-soft); margin: 4px 0 0; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="var(--spark)" stroke-width="2.4" stroke-linecap="round"/></svg>
+        Mathematics in Motion
+      </a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="textbooks.html">Textbooks</a>
+        <a href="approach.html">Approach</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="padding-bottom:8px">
+      <div class="wrap">
+        <div class="eyebrow">Author tools</div>
+        <h1>Post a lesson</h1>
+        <p class="lead muted">Add a video, write the explanation and the questions, and press Save. The lesson is live on the site straight away.</p>
+      </div>
+    </section>
+
+    <section id="not-connected" class="hidden">
+      <div class="wrap">
+        <div class="callout">
+          <strong>Supabase is not connected yet.</strong> The site is showing the bundled lessons. Follow <code>supabase/SETUP.md</code> in the repository (about 15 minutes), paste the project URL and anon key into <code>assets/config.js</code>, and this page becomes the editor.
+        </div>
+      </div>
+    </section>
+
+    <section id="signin" class="hidden" style="padding-top:0">
+      <div class="wrap" style="max-width:460px">
+        <div class="card">
+          <h3>Sign in</h3>
+          <form id="signin-form">
+            <label for="email">Email</label>
+            <input id="email" type="text" autocomplete="username" inputmode="email">
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password" style="width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)">
+            <div class="status" id="signin-status"></div>
+            <div class="btn-row"><button class="btn btn-primary" type="submit">Sign in</button></div>
+            <p class="help">Only the author account created in the Supabase dashboard can sign in. There is no sign-up.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="editor" class="hidden" style="padding-top:0">
+      <div class="wrap">
+        <div class="admin-grid">
+          <aside class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+              <strong>Lessons</strong>
+              <button class="btn btn-ghost btn-sm" type="button" id="new-lesson">+ New</button>
+            </div>
+            <div class="list" id="lesson-list" style="margin-top:10px"></div>
+            <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+            <p class="small muted" id="whoami"></p>
+            <button class="btn btn-ghost btn-sm" type="button" id="signout">Sign out</button>
+          </aside>
+
+          <form id="lesson-form" class="card" autocomplete="off">
+            <input type="hidden" id="f-id">
+            <div class="row-3">
+              <div><label for="f-number">Lesson number</label><input id="f-number" type="text" placeholder="8.1"></div>
+              <div><label for="f-status">Status</label>
+                <select id="f-status"><option value="draft">Draft (hidden)</option><option value="planned">Planned (listed, no page)</option><option value="live">Live</option></select></div>
+              <div><label for="f-level">Level</label><input id="f-level" type="text" placeholder="Forms 3 and 4"></div>
+            </div>
+            <label for="f-title">Title</label><input id="f-title" type="text" required placeholder="Angle of elevation at Great Zimbabwe">
+            <div class="row">
+              <div><label for="f-slug">Web address (slug)</label><input id="f-slug" type="text" placeholder="angle-of-elevation" pattern="[a-z0-9-]+"><p class="help">Lowercase letters, numbers and dashes. Filled from the title if left empty.</p></div>
+              <div><label for="f-video">YouTube link or video id</label><input id="f-video" type="text" placeholder="https://youtu.be/3gDGAKZOnBY"><p class="help">Paste the whole link; the id is extracted.</p></div>
+            </div>
+            <div class="row-3">
+              <div><label for="f-topic">Topic</label><input id="f-topic" type="text" placeholder="Trigonometry"></div>
+              <div><label for="f-chapter">Chapter</label><input id="f-chapter" type="text" placeholder="Chapter 8 · Trigonometry"></div>
+              <div><label for="f-duration">Video length</label><input id="f-duration" type="text" placeholder="2:08"></div>
+            </div>
+            <label for="f-hook">Real-world hook (one or two sentences under the title)</label><textarea id="f-hook"></textarea>
+            <label for="f-summary">Summary (shown on the lesson list)</label><textarea id="f-summary"></textarea>
+            <label for="f-theorem">The idea in one sentence</label><textarea id="f-theorem"></textarea>
+            <label for="f-explanation">Explanation (sits under the video)</label><textarea id="f-explanation" style="min-height:140px"></textarea>
+            <label for="f-figure">Diagram for the explanation</label>
+            <div class="upload"><input id="f-figure" type="text" placeholder="https://… or assets/figures/….svg" style="flex:1;min-width:200px"><input type="file" accept="image/*" data-upload-for="f-figure"></div>
+            <p class="help">Paste an image address, or choose a file to upload it.</p>
+
+            <h3 style="margin-top:28px">Textbook alignment</h3>
+            <label for="f-us-name">What US textbooks call this result</label><input id="f-us-name" type="text">
+            <div class="row-3">
+              <div><label for="f-tb-envision">enVision Geometry</label><input id="f-tb-envision" type="text"></div>
+              <div><label for="f-tb-bigideas">Big Ideas Math Geometry</label><input id="f-tb-bigideas" type="text"></div>
+              <div><label for="f-tb-hmh">HMH Into Geometry</label><input id="f-tb-hmh" type="text"></div>
+            </div>
+            <div class="row">
+              <div><label for="f-standard">Common Core standard</label><input id="f-standard" type="text" placeholder="HSG-SRT.C.8"></div>
+              <div><label style="margin-top:30px"><input id="f-tb-confirmed" type="checkbox"> Section numbers checked against a physical copy</label></div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:28px;flex-wrap:wrap;gap:8px">
+              <h3 style="margin:0">Questions</h3>
+              <button class="btn btn-ghost btn-sm" type="button" id="add-question">+ Add question</button>
+            </div>
+            <p class="help">Students type a number. Give the exact answer and how close counts (tolerance). Hints show after a miss; the worked solution opens after two.</p>
+            <div id="questions"></div>
+
+            <div class="status" id="save-status"></div>
+            <div class="btn-row" style="justify-content:space-between">
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-primary" type="submit">Save lesson</button>
+                <a class="btn btn-ghost" id="preview" href="#" target="_blank" rel="noopener">Preview</a>
+              </div>
+              <button class="btn btn-danger btn-sm" type="button" id="delete-lesson">Delete lesson</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Mathematics in Motion · Jephias Hadzina</span>
+      <span><a href="index.html">Back to the site</a></span>
+    </div>
+  </footer>
+
+  <template id="q-template">
+    <div class="q">
+      <div class="q-head">
+        <strong>Question <span class="q-n"></span></strong>
+        <div class="btns">
+          <button class="btn btn-ghost btn-sm" type="button" data-act="up" title="Move up">↑</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-act="down" title="Move down">↓</button>
+          <button class="btn btn-danger btn-sm" type="button" data-act="remove">Remove</button>
+        </div>
+      </div>
+      <label>Question</label><textarea data-f="prompt"></textarea>
+      <div class="row-3">
+        <div><label>Correct answer (number)</label><input data-f="answer" type="number" step="any" required></div>
+        <div><label>Tolerance</label><input data-f="tolerance" type="number" step="any" value="0.01"><p class="help">0.15 for answers to 1 d.p.</p></div>
+        <div><label>Unit</label><input data-f="unit" type="text" placeholder="° or m"></div>
+      </div>
+      <label>Hint (after a miss)</label><input data-f="hint" type="text">
+      <label>Worked solution</label><textarea data-f="solution"></textarea>
+      <label>Diagram</label>
+      <div class="upload"><input data-f="figure" type="text" placeholder="https://… or assets/figures/….svg" style="flex:1;min-width:200px"><input type="file" accept="image/*" data-upload-q></div>
+    </div>
+  </template>
+
+  <script src="assets/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/site.js"></script>
+  <script src="assets/admin.js"></script>
+</body>
+</html>
