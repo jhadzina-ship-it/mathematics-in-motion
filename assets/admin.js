@@ -246,7 +246,10 @@
     if (pick === 'own') {
       name = $('new-topic-name').value.trim();
       if (!name) { status('topic-status', 'Give the topic a name first.', false); return; }
-      n = nextTopicNumber();
+      // A name that is really a syllabus topic keeps its syllabus number (Trigonometry is Topic 10, not a new one).
+      var same = syllabus.filter(function (x) { return x.name.toLowerCase().replace(/[^a-z]/g, '') === name.toLowerCase().replace(/[^a-z]/g, ''); })[0];
+      if (same && ownTopics.some(function (x) { return x.number === same.number; })) { status('topic-status', 'Topic ' + same.number + ' · ' + same.name + ' is already in your list.', false); return; }
+      if (same) { n = same.number; name = same.name; } else { n = nextTopicNumber(); }
     } else {
       n = parseInt(pick, 10);
       var syl = syllabus.filter(function (x) { return x.number === n; })[0];
