@@ -142,12 +142,12 @@
     .branch.add-topic { border-style: dashed; }
     .steps-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 16px; }
     @media (max-width: 700px) { .steps-strip { grid-template-columns: 1fr; } }
-    .steps-strip .step { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: #fff; }
-    .steps-strip .step span { display: block; font-size: .85rem; color: var(--ink-2); }
+    .steps-strip .sstep { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: #fff; }
+    .steps-strip .sstep span { display: block; font-size: .85rem; color: var(--ink-2); }
     .steps-strip .s-num { width: 30px; height: 30px; border-radius: 50%; background: var(--chip); color: var(--ink-2); display: grid; place-items: center; font-weight: 700; flex: none; font-size: .9rem; }
-    .steps-strip .step.now { border-color: var(--blue); background: var(--blue-soft); }
-    .steps-strip .step.now .s-num { background: var(--blue); color: #fff; }
-    .steps-strip .step.done .s-num { background: var(--ok-soft); color: var(--ok); }
+    .steps-strip .sstep.now { border-color: var(--blue); background: var(--blue-soft); }
+    .steps-strip .sstep.now .s-num { background: var(--blue); color: #fff; }
+    .steps-strip .sstep.done .s-num { background: var(--ok-soft); color: var(--ok); }
     .branch.empty-state { border-style: dashed; }
 
   </style>
@@ -406,6 +406,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
-  <script src="assets/admin.js?v=9"></script>
+  <script src="assets/admin.js?v=10"></script>
 </body>
 </html>

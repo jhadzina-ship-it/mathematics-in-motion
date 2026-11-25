@@ -222,7 +222,7 @@
     var items = [['Add a topic', 'Pick one from the syllabus or name your own.'], ['Add a subtopic', 'Open the topic, paste your video link, tell the assistant what it covers.'], ['Check and post', 'Read the draft, check the answers, press Post as Live.']];
     el.innerHTML = items.map(function (s, i) {
       var n = i + 1, cls = n < step ? 'done' : n === step ? 'now' : '';
-      return '<div class="step ' + cls + '"><span class="s-num">' + (n < step ? '✓' : n) + '</span><div><strong>' + s[0] + '</strong><span>' + s[1] + '</span></div></div>';
+      return '<div class="sstep ' + cls + '"><span class="s-num">' + (n < step ? '✓' : n) + '</span><div><strong>' + s[0] + '</strong><span>' + s[1] + '</span></div></div>';
     }).join('');
   }
   function nextTopicNumber() {
