@@ -54,7 +54,8 @@
     'Geometry', 'Statistics', 'Trigonometry', 'Matrices', 'Vectors', 'Transformations', 'Probability'];
   var syllabus = TOPIC_NAMES.map(function (name, i) { return { number: i + 1, name: name, subtopics: [] }; });
   var ownTopics = []; // the author's own topics from the topics table (numbers 15+)
-  function allTopics() { return syllabus.concat(ownTopics); }
+  // Only topics the author has added appear; the syllabus list is a menu of suggestions.
+  function allTopics() { return ownTopics; }
   var syllabusReady = fetch('content/syllabus-b.json').then(function (r) { return r.json(); }).then(function (j) {
     if (j && Array.isArray(j.topics) && j.topics.length) syllabus = j.topics;
   }).catch(function () { /* keep the fallback names */ }).then(function () {
@@ -162,7 +163,9 @@
     var panel = panelEl;
     if (panel.parentNode) panel.parentNode.removeChild(panel); // keep the panel alive while the tree is rebuilt
 
-    tree.innerHTML = allTopics().map(function (g) {
+    var taken = {}; ownTopics.forEach(function (x) { taken[x.number] = true; });
+    var menu = syllabus.filter(function (x) { return !taken[x.number]; }).map(function (x) { return '<option value="' + x.number + '">Topic ' + x.number + ' · ' + esc(x.name) + ' (syllabus)</option>'; }).join('') + '<option value="own">My own topic (not in the syllabus)</option>';
+    tree.innerHTML = (allTopics().length ? '' : '<div class="branch empty-state"><div class="branch-body" style="padding-left:16px"><strong>No topics yet.</strong><p class="branch-hint">Start with step 1: add your first topic below.</p></div></div>') + allTopics().map(function (g) {
       var inTopic = lessons.filter(function (l) { return lessonTopic(l) === g.number; }).sort(function (a, b) { return numKey(a.number) - numKey(b.number); });
       var forms = (g.subtopics || []).map(function (s) { return s.name; }).join(', ');
       var rows = inTopic.map(function (l) {
@@ -173,17 +176,20 @@
           '<a href="#" class="open" data-id="' + esc(l.id) + '">Open</a></div>';
       }).join('');
       return '<details class="branch' + (inTopic.length ? '' : ' empty') + '" data-topic="' + g.number + '"' + (openTopics[g.number] ? ' open' : '') + '>' +
-        '<summary><span class="t-num">' + g.number + '</span><span class="t-name">Topic ' + g.number + ' · ' + esc(g.name) + (g.own ? ' <span class="pill pill-amber">your own topic</span>' : '') + (forms ? '<small>' + esc(forms) + '</small>' : (g.description ? '<small>' + esc(g.description) + '</small>' : '')) + '</span>' +
+        '<summary><span class="t-num">' + g.number + '</span><span class="t-name">Topic ' + g.number + ' · ' + esc(g.name) + (g.own ? ' <span class="pill pill-amber">your own topic</span>' : ' <span class="pill">syllabus</span>') + (forms ? '<small>' + esc(forms) + '</small>' : (g.description ? '<small>' + esc(g.description) + '</small>' : '')) + '</span>' +
         '<span class="t-count">' + (inTopic.length ? inTopic.length + ' subtopic' + (inTopic.length === 1 ? '' : 's') : 'no subtopics yet') + '</span></summary>' +
-        '<div class="branch-body">' + (rows || '<p class="branch-hint">Nothing posted in this topic yet.' + (g.own ? ' <button class="linkish" type="button" data-remove-topic="' + g.number + '">Remove this topic</button>' : '') + '</p>') +
+        '<div class="branch-body">' + (rows || '<p class="branch-hint">Nothing posted in this topic yet.' + ' <button class="linkish" type="button" data-remove-topic="' + g.number + '">Remove this topic</button>' + '</p>') +
         '<div class="add-sub"><button class="btn btn-primary btn-sm" type="button" data-add="' + g.number + '">+ Add a subtopic (' + nextNumber(g.number) + ')</button></div>' +
         '<div class="slot" data-slot="' + g.number + '"></div></div></details>';
     }).join('') +
-      '<div class="branch add-topic"><div class="branch-body" style="padding-left:16px"><strong>Add your own topic</strong><p class="branch-hint">For anything outside the syllabus list. It gets the next number (' + nextTopicNumber() + ') and its own subtopics.</p>' +
-      '<div class="with-btn"><input type="text" id="new-topic-name" placeholder="Topic name, e.g. Exam practice" style="font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;flex:1"><button class="btn btn-primary btn-sm" type="button" id="add-topic">Add topic</button></div><div class="status" id="topic-status"></div></div></div>';
+      '<div class="branch add-topic"><div class="branch-body" style="padding-left:16px"><strong>Step 1 · Add a topic</strong><p class="branch-hint">Pick a syllabus topic (it keeps its syllabus number) or name your own (it gets number ' + nextTopicNumber() + ').</p>' +
+      '<div class="with-btn"><select id="new-topic-pick" style="font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;flex:1">' + menu + '</select><input type="text" id="new-topic-name" placeholder="Name of your own topic" class="hidden" style="font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;flex:1"><button class="btn btn-primary btn-sm" type="button" id="add-topic">Add topic</button></div><div class="status" id="topic-status"></div></div></div>';
 
     $('add-topic').addEventListener('click', addOwnTopic);
+    $('new-topic-pick').addEventListener('change', function () { show('new-topic-name', $('new-topic-pick').value === 'own'); if ($('new-topic-pick').value === 'own') $('new-topic-name').focus(); });
+    show('new-topic-name', $('new-topic-pick').value === 'own');
     $('new-topic-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addOwnTopic(); } });
+    renderSteps();
 
     tree.querySelectorAll('a.open').forEach(function (a) {
       a.addEventListener('click', function (e) {
@@ -209,6 +215,16 @@
     });
     mountPanel();
   }
+  // The three steps, with the one Jephias is on highlighted.
+  function renderSteps() {
+    var el = $('steps'); if (!el) return;
+    var step = !ownTopics.length ? 1 : !lessons.length ? 2 : (current && current.id ? 3 : (draftReady ? 3 : 2));
+    var items = [['Add a topic', 'Pick one from the syllabus or name your own.'], ['Add a subtopic', 'Open the topic, paste your video link, tell the assistant what it covers.'], ['Check and post', 'Read the draft, check the answers, press Post as Live.']];
+    el.innerHTML = items.map(function (s, i) {
+      var n = i + 1, cls = n < step ? 'done' : n === step ? 'now' : '';
+      return '<div class="step ' + cls + '"><span class="s-num">' + (n < step ? '✓' : n) + '</span><div><strong>' + s[0] + '</strong><span>' + s[1] + '</span></div></div>';
+    }).join('');
+  }
   function nextTopicNumber() {
     var max = 14;
     ownTopics.forEach(function (t) { if (t.number > max) max = t.number; });
@@ -218,14 +234,25 @@
   function loadOwnTopics() {
     return sb.from('topics').select('*').order('number', { ascending: true }).then(function (r) {
       if (r.error) { console.warn('topics table not available:', r.error.message); return; }
-      ownTopics = (r.data || []).map(function (t) { return { number: t.number, name: t.name, description: t.description || '', subtopics: [], own: true }; });
+      ownTopics = (r.data || []).map(function (t) {
+        var syl = syllabus.filter(function (x) { return x.number === t.number; })[0];
+        return { number: t.number, name: t.name, description: t.description || '', subtopics: syl ? syl.subtopics : [], own: !syl };
+      });
       fillTopicSelect();
     });
   }
   function addOwnTopic() {
-    var name = $('new-topic-name').value.trim();
-    if (!name) { status('topic-status', 'Give the topic a name first.', false); return; }
-    var n = nextTopicNumber();
+    var pick = $('new-topic-pick').value, name, n;
+    if (pick === 'own') {
+      name = $('new-topic-name').value.trim();
+      if (!name) { status('topic-status', 'Give the topic a name first.', false); return; }
+      n = nextTopicNumber();
+    } else {
+      n = parseInt(pick, 10);
+      var syl = syllabus.filter(function (x) { return x.number === n; })[0];
+      if (!syl) { status('topic-status', 'Choose a topic first.', false); return; }
+      name = syl.name;
+    }
     sb.from('topics').insert({ number: n, name: name }).then(function (r) {
       if (r.error) { status('topic-status', 'Could not add the topic: ' + r.error.message, false); return; }
       return loadOwnTopics().then(function () { openTopics[n] = true; renderTree(); openTopic(n, null); });
@@ -296,6 +323,7 @@
     draftReady = !!l.title;
     show('lesson-form', false);
     renderPreview();
+    renderSteps();
     activeTopic = lessonTopic(l) || activeTopic;
     var tp = topicOf(activeTopic);
     $('panel-topic').textContent = 'Topic ' + activeTopic + ' · ' + (tp ? tp.name : '');

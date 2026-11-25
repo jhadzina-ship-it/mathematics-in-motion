@@ -108,13 +108,15 @@ drop policy if exists "author deletes figures" on storage.objects;
 create policy "author deletes figures" on storage.objects
   for delete to authenticated using (bucket_id = 'figures');
 
--- The author's own topics, beyond the 14 syllabus topics (numbered 15 onwards).
+-- The author's topics: syllabus topics keep their syllabus number (1-14); his own topics are numbered 15 onwards.
 create table if not exists public.topics (
-  number      integer primary key check (number > 14),
+  number      integer primary key check (number > 0),
   name        text not null,
   description text not null default '',
   created_at  timestamptz not null default now()
 );
+alter table public.topics drop constraint if exists topics_number_check;
+alter table public.topics add constraint topics_number_check check (number > 0);
 alter table public.topics enable row level security;
 drop policy if exists "public read topics" on public.topics;
 create policy "public read topics" on public.topics for select using (true);

@@ -140,6 +140,16 @@
     .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
     .post-panel .card { background: #fff; }
     .branch.add-topic { border-style: dashed; }
+    .steps-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 16px; }
+    @media (max-width: 700px) { .steps-strip { grid-template-columns: 1fr; } }
+    .steps-strip .step { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: #fff; }
+    .steps-strip .step span { display: block; font-size: .85rem; color: var(--ink-2); }
+    .steps-strip .s-num { width: 30px; height: 30px; border-radius: 50%; background: var(--chip); color: var(--ink-2); display: grid; place-items: center; font-weight: 700; flex: none; font-size: .9rem; }
+    .steps-strip .step.now { border-color: var(--blue); background: var(--blue-soft); }
+    .steps-strip .step.now .s-num { background: var(--blue); color: #fff; }
+    .steps-strip .step.done .s-num { background: var(--ok-soft); color: var(--ok); }
+    .branch.empty-state { border-style: dashed; }
+
   </style>
 </head>
 <body>
@@ -165,7 +175,7 @@
       <div class="wrap">
         <div class="eyebrow">Author tools</div>
         <h1>Your lessons</h1>
-        <p class="lead muted">Topics are the branches of the syllabus. Open one and add a subtopic: the assistant writes it from your video, you check it, and one press puts it on the site.</p>
+        <p class="lead muted">Add a topic, add a subtopic from your video, check it and post. The assistant writes the lesson; you stay in charge.</p>
       </div>
     </section>
 
@@ -195,7 +205,8 @@
 
     <section id="editor" class="hidden" style="padding-top:0">
       <div class="wrap">
-        <p class="help" style="margin:0 0 14px;font-size:.95rem">Open a topic, then <strong>add a subtopic</strong>. Each subtopic is one video lesson. Students take the subtopics of a topic in order, so the next number is given automatically.</p>
+        <div class="steps-strip" id="steps"></div>
+        <p class="help" style="margin:0 0 14px;font-size:.95rem">Topics are the branches; each subtopic inside a topic is one video lesson. Students take the subtopics of a topic in order, so the next number is given automatically.</p>
         <div id="tree" class="tree"></div>
 
         <div id="post-panel" class="post-panel hidden">
@@ -395,6 +406,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
-  <script src="assets/admin.js?v=8"></script>
+  <script src="assets/admin.js?v=9"></script>
 </body>
 </html>
