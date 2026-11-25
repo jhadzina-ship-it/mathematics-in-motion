@@ -344,6 +344,7 @@
     show('lesson-form', false);
     renderPreview();
     renderSteps();
+    if (!quiet) greetLesson(l);
     activeTopic = lessonTopic(l) || activeTopic;
     var tp = topicOf(activeTopic);
     $('panel-topic').textContent = 'Topic ' + activeTopic + ' · ' + (tp ? tp.name : '');
@@ -586,6 +587,12 @@
     $('chat-log').innerHTML = ''; chat = [];
     var tp = topicOf(n || activeTopic);
     addMsg('bot', (tp ? 'Topic ' + tp.number + ' · ' + tp.name + '. This will be subtopic ' + nextNumber(tp.number) + '. ' : '') + 'Paste the YouTube link and tell me what the video covers. I will ask if I need anything else, then show you a draft to check. When it looks right, press Post as Live or just say "post it".');
+  }
+  // Opening an existing subtopic from the list starts a conversation about that lesson.
+  function greetLesson(l) {
+    $('chat-log').innerHTML = ''; chat = [];
+    var n = (l.questions || []).length, state = l.status === 'live' ? 'is live on the site' : l.status === 'draft' ? 'is a draft, not yet on the site' : 'is planned, not yet on the site';
+    addMsg('bot', 'Subtopic ' + l.number + ' · ' + l.title + ' ' + state + ', with ' + n + ' question' + (n === 1 ? '' : 's') + '. The lesson is below. Tell me what to change, for example "make question 2 harder" or "add a question set at Victoria Falls", and I will rewrite it for you to check. ' + (l.status === 'live' ? 'Changes only reach students when you press Post as Live again.' : 'Press Post as Live when it is ready.'));
   }
   function applyDraft(lesson) {
     if (activeTopic) { lesson.syllabus_topic = activeTopic; if (!String(lesson.number || '').startsWith(activeTopic + '.')) lesson.number = current && current.id ? current.number : nextNumber(activeTopic); }
