@@ -86,7 +86,14 @@
         return '<div class="topic" id="topic-' + t.number + '"><h2>Topic ' + t.number + ' · ' + esc(t.name) + '</h2>' +
           (mine.length ? '<div class="lessons-in">' + mine.map(function (l) { return l.status === 'live' ? '<a class="chip" href="lesson.html?id=' + encodeURIComponent(l.slug) + '">' + esc(l.number) + ' ' + esc(l.title) + '</a>' : '<span class="chip" style="opacity:.6">' + esc(l.number) + ' ' + esc(l.title) + ' (coming)</span>'; }).join('') + '</div>' : '<p class="muted small" style="margin:4px 0 0">No lessons on this topic yet.</p>') +
           '<div class="forms"><div><h4>Form 3</h4>' + formList('3') + '</div><div><h4>Form 4</h4>' + formList('4') + '</div></div></div>';
-      }).join('');
+      }).join('') + (function () {
+        var own = {};
+        lessons.forEach(function (l) { if (l.syllabus_topic > 14 && l.status !== 'draft') { (own[l.syllabus_topic] = own[l.syllabus_topic] || { name: l.topic, items: [] }).items.push(l); } });
+        return Object.keys(own).sort(function (a, b) { return a - b; }).map(function (k) {
+          return '<div class="topic" id="topic-' + k + '"><h2>Topic ' + k + ' · ' + esc(own[k].name) + ' <span class="pill pill-amber">beyond the syllabus</span></h2><div class="lessons-in">' +
+            own[k].items.map(function (l) { return l.status === 'live' ? '<a class="chip" href="lesson.html?id=' + encodeURIComponent(l.slug) + '">' + esc(l.number) + ' ' + esc(l.title) + '</a>' : '<span class="chip" style="opacity:.6">' + esc(l.number) + ' ' + esc(l.title) + ' (coming)</span>'; }).join('') + '</div></div>';
+        }).join('');
+      })();
     });
   </script>
 </body>

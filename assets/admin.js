@@ -53,6 +53,8 @@
   var TOPIC_NAMES = ['Real Numbers', 'Sets', 'Financial Mathematics', 'Measures and Mensuration', 'Graphs', 'Variation', 'Algebra',
     'Geometry', 'Statistics', 'Trigonometry', 'Matrices', 'Vectors', 'Transformations', 'Probability'];
   var syllabus = TOPIC_NAMES.map(function (name, i) { return { number: i + 1, name: name, subtopics: [] }; });
+  var ownTopics = []; // the author's own topics from the topics table (numbers 15+)
+  function allTopics() { return syllabus.concat(ownTopics); }
   var syllabusReady = fetch('content/syllabus-b.json').then(function (r) { return r.json(); }).then(function (j) {
     if (j && Array.isArray(j.topics) && j.topics.length) syllabus = j.topics;
   }).catch(function () { /* keep the fallback names */ }).then(function () {
@@ -61,14 +63,14 @@
 
   function topicOf(n) {
     n = parseInt(n, 10);
-    return syllabus.filter(function (t) { return t.number === n; })[0] || null;
+    return allTopics().filter(function (t) { return t.number === n; })[0] || null;
   }
   function topicName(n) { var t = topicOf(n); return t ? t.name : ''; }
   function chapterOf(n) { var t = topicOf(n); return t ? 'Topic ' + t.number + ' · ' + t.name : ''; }
   // The syllabus topic a lesson belongs to: the stored field, else the prefix of its number.
   function lessonTopic(l) {
     var t = parseInt(l.syllabus_topic, 10);
-    if (t >= 1 && t <= 14) return t;
+    if (t >= 1) return t;
     var m = /^(\d+)\./.exec(String(l.number || ''));
     return m ? parseInt(m[1], 10) : 0;
   }
@@ -85,7 +87,7 @@
   function fillTopicSelect() {
     var sel = $('f-syllabus-topic');
     var keep = sel.value;
-    sel.innerHTML = '<option value="">Choose a topic…</option>' + syllabus.map(function (t) {
+    sel.innerHTML = '<option value="">Choose a topic…</option>' + allTopics().map(function (t) {
       return '<option value="' + t.number + '">' + t.number + ' · ' + esc(t.name) + '</option>';
     }).join('');
     sel.value = keep;
@@ -114,7 +116,7 @@
     show('editor', !!session);
     if (session) {
       $('whoami').textContent = 'Signed in as ' + session.user.email;
-      syllabusReady.then(function () { loadLessons('first'); });
+      syllabusReady.then(loadOwnTopics).then(function () { loadLessons('first'); });
     }
   }
 
@@ -160,7 +162,7 @@
     var panel = panelEl;
     if (panel.parentNode) panel.parentNode.removeChild(panel); // keep the panel alive while the tree is rebuilt
 
-    tree.innerHTML = syllabus.map(function (g) {
+    tree.innerHTML = allTopics().map(function (g) {
       var inTopic = lessons.filter(function (l) { return lessonTopic(l) === g.number; }).sort(function (a, b) { return numKey(a.number) - numKey(b.number); });
       var forms = (g.subtopics || []).map(function (s) { return s.name; }).join(', ');
       var rows = inTopic.map(function (l) {
@@ -171,12 +173,17 @@
           '<a href="#" class="open" data-id="' + esc(l.id) + '">Open</a></div>';
       }).join('');
       return '<details class="branch' + (inTopic.length ? '' : ' empty') + '" data-topic="' + g.number + '"' + (openTopics[g.number] ? ' open' : '') + '>' +
-        '<summary><span class="t-num">' + g.number + '</span><span class="t-name">Topic ' + g.number + ' · ' + esc(g.name) + (forms ? '<small>' + esc(forms) + '</small>' : '') + '</span>' +
+        '<summary><span class="t-num">' + g.number + '</span><span class="t-name">Topic ' + g.number + ' · ' + esc(g.name) + (g.own ? ' <span class="pill pill-amber">your own topic</span>' : '') + (forms ? '<small>' + esc(forms) + '</small>' : (g.description ? '<small>' + esc(g.description) + '</small>' : '')) + '</span>' +
         '<span class="t-count">' + (inTopic.length ? inTopic.length + ' subtopic' + (inTopic.length === 1 ? '' : 's') : 'no subtopics yet') + '</span></summary>' +
         '<div class="branch-body">' + (rows || '<p class="branch-hint">Nothing posted in this topic yet.</p>') +
         '<div class="add-sub"><button class="btn btn-primary btn-sm" type="button" data-add="' + g.number + '">+ Add a subtopic (' + nextNumber(g.number) + ')</button></div>' +
         '<div class="slot" data-slot="' + g.number + '"></div></div></details>';
-    }).join('');
+    }).join('') +
+      '<div class="branch add-topic"><div class="branch-body" style="padding-left:16px"><strong>Add your own topic</strong><p class="branch-hint">For anything outside the syllabus list. It gets the next number (' + nextTopicNumber() + ') and its own subtopics.</p>' +
+      '<div class="with-btn"><input type="text" id="new-topic-name" placeholder="Topic name, e.g. Exam practice" style="font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;flex:1"><button class="btn btn-primary btn-sm" type="button" id="add-topic">Add topic</button></div><div class="status" id="topic-status"></div></div></div>';
+
+    $('add-topic').addEventListener('click', addOwnTopic);
+    $('new-topic-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addOwnTopic(); } });
 
     tree.querySelectorAll('a.open').forEach(function (a) {
       a.addEventListener('click', function (e) {
@@ -189,6 +196,28 @@
       b.addEventListener('click', function () { openTopic(parseInt(b.getAttribute('data-add'), 10), null); });
     });
     mountPanel();
+  }
+  function nextTopicNumber() {
+    var max = 14;
+    ownTopics.forEach(function (t) { if (t.number > max) max = t.number; });
+    lessons.forEach(function (l) { var n = lessonTopic(l); if (n > max) max = n; });
+    return max + 1;
+  }
+  function loadOwnTopics() {
+    return sb.from('topics').select('*').order('number', { ascending: true }).then(function (r) {
+      if (r.error) { console.warn('topics table not available:', r.error.message); return; }
+      ownTopics = (r.data || []).map(function (t) { return { number: t.number, name: t.name, description: t.description || '', subtopics: [], own: true }; });
+      fillTopicSelect();
+    });
+  }
+  function addOwnTopic() {
+    var name = $('new-topic-name').value.trim();
+    if (!name) { status('topic-status', 'Give the topic a name first.', false); return; }
+    var n = nextTopicNumber();
+    sb.from('topics').insert({ number: n, name: name }).then(function (r) {
+      if (r.error) { status('topic-status', 'Could not add the topic: ' + r.error.message, false); return; }
+      return loadOwnTopics().then(function () { openTopics[n] = true; renderTree(); openTopic(n, null); });
+    });
   }
   // Put the post panel inside the active branch (or hide it).
   function mountPanel() {
@@ -382,8 +411,8 @@
     row.slug = slugify(row.slug || row.title);
     row.video_id = videoId($('f-video').value);
     var t = parseInt(row.syllabus_topic, 10);
-    if (!(t >= 1 && t <= 14)) { var m = /^(\d+)\./.exec(row.number); t = m ? parseInt(m[1], 10) : 0; }
-    row.syllabus_topic = t >= 1 && t <= 14 ? t : null;
+    if (!(t >= 1)) { var m = /^(\d+)\./.exec(row.number); t = m ? parseInt(m[1], 10) : 0; }
+    row.syllabus_topic = t >= 1 ? t : null;
     row.topic = row.syllabus_topic ? topicName(row.syllabus_topic) : '';
     row.chapter = row.syllabus_topic ? chapterOf(row.syllabus_topic) : '';
     row.questions = readQuestions();
@@ -531,7 +560,7 @@
 
     var draft = $('f-title').value.trim() ? collect() : null;
     var payload = {
-      messages: chat, draft: draft, script: $('ai-script').value.trim(), topic_number: activeTopic || null,
+      messages: chat, draft: draft, script: $('ai-script').value.trim(), topic_number: activeTopic || null, topic_name: activeTopic ? topicName(activeTopic) : null,
       existing: lessons.map(function (l) {
         return { number: l.number, title: l.title, chapter: l.chapter || chapterOf(lessonTopic(l)), syllabus_topic: lessonTopic(l) || null, slug: l.slug };
       })

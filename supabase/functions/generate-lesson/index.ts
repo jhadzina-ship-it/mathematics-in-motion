@@ -64,7 +64,7 @@ const LESSON_SCHEMA = {
     "hook", "summary", "outcomes", "skills", "theorem", "explanation", "questions"],
   properties: {
     slug: { type: "string", description: "Lowercase letters, digits and dashes only, e.g. angle-of-depression." },
-    syllabus_topic: { type: "integer", description: "Syllabus B topic number 1 to 14 that the lesson belongs to. This decides the chapter." },
+    syllabus_topic: { type: "integer", description: "The topic number the lesson belongs to: 1 to 14 for the syllabus topics, or the number of one of the author's own topics given in the context. This decides the chapter." },
     number: { type: "string", description: "Lesson number: the topic number, a dot, then the next free position in that topic, e.g. 10.2. Use exactly the next free number given in the context unless the author asks for a specific one." },
     title: { type: "string", description: "The lesson title." },
     level: { type: "string", description: "'Form 3', 'Form 4' or 'Forms 3 and 4'." },
@@ -102,7 +102,7 @@ How to run the conversation:
 - Never mark anything as posted or live yourself; he saves it from the form.
 
 Syllabus and numbering:
-- Place every lesson in one Syllabus B topic (1 to 14) and give the Form, sub-topic and objective from the syllabus notes below.
+- Place every lesson in one topic: a Syllabus B topic (1 to 14), or one of the author's own topics if the context names one. Give the Form, sub-topic and objective from the syllabus notes below where they apply; for the author's own topics, write a sub-topic and objective in the same style.
 - Lessons inside a topic are numbered in teaching order: 10.1, 10.2, 10.3. The context tells you the next free number in each topic; use it. A student must finish one lesson before the next opens, so order matters: if the new lesson is a prerequisite of an existing one, say so and suggest the order, but still use the next free number unless Jephias asks to renumber.
 
 Writing rules for the lesson:
@@ -160,6 +160,7 @@ function nextNumbers(existing: Existing[]): Record<number, string> {
   }
   const out: Record<number, string> = {};
   for (let t = 1; t <= 14; t++) out[t] = `${t}.${(max[t] || 0) + 1}`;
+  Object.keys(max).forEach((k) => { const t = Number(k); if (t > 14) out[t] = `${t}.${max[t] + 1}`; });
   return out;
 }
 
@@ -179,7 +180,7 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) return json({ error: "ANTHROPIC_API_KEY is not set in the function's secrets." }, 500);
 
-  let body: { messages?: ChatMessage[]; draft?: Lesson | null; script?: string; existing?: Existing[]; topic_number?: number };
+  let body: { messages?: ChatMessage[]; draft?: Lesson | null; script?: string; existing?: Existing[]; topic_number?: number; topic_name?: string };
   try { body = await req.json(); } catch { return json({ error: "Bad request body." }, 400); }
   const history = (body.messages || []).filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim());
   if (!history.length || history[history.length - 1].role !== "user") return json({ error: "Send at least one user message." }, 400);
@@ -202,7 +203,8 @@ Deno.serve(async (req) => {
   context.push(`Lessons already on the site (number, title):\n` + (existing.length ? existing.map((l) => `${l.number} ${l.title}`).join("\n") : "none yet"));
   context.push(`Next free lesson number in each topic:\n` + Object.keys(next).map((t) => `Topic ${t} ${TOPICS[Number(t)]}: ${next[Number(t)]}`).join("\n"));
   if (body.draft) context.push(`The draft currently in the author's form (JSON). If he asks for changes, change only what he asks and keep its number:\n${JSON.stringify(body.draft)}`);
-  const forced = Number(body.topic_number) >= 1 && Number(body.topic_number) <= 14 ? Number(body.topic_number) : 0;
+  const forced = Number(body.topic_number) >= 1 ? Number(body.topic_number) : 0;
+  if (forced && !TOPICS[forced]) TOPICS[forced] = String(body.topic_name || "Topic " + forced);
   if (forced) context.push(`The author opened Topic ${forced} (${TOPICS[forced]}) and is adding a subtopic inside it. The lesson MUST belong to topic ${forced}: syllabus_topic ${forced}, number ${body.draft?.number || next[forced]}. Do not ask which topic; if the video seems to belong elsewhere, say so in one sentence but still place it here.`);
 
   const messages: Anthropic.Beta.BetaMessageParam[] = history.map((m) => ({ role: m.role, content: m.content }));
@@ -239,7 +241,9 @@ Deno.serve(async (req) => {
         const l = block.input as Lesson;
         if (l && typeof l.title === "string" && Array.isArray(l.questions)) {
           l.slug = slugify(l.slug || l.title);
-          const t = forced || Math.min(14, Math.max(1, Number(l.syllabus_topic) || 1));
+          const t = forced || Math.max(1, Number(l.syllabus_topic) || 1);
+          if (!TOPICS[t]) TOPICS[t] = String(body.topic_name || "Topic " + t);
+          if (!next[t]) next[t] = `${t}.1`;
           l.syllabus_topic = t;
           l.topic = TOPICS[t];
           l.chapter = `Topic ${t} · ${TOPICS[t]}`;
