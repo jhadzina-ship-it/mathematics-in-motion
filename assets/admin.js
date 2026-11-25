@@ -16,6 +16,7 @@
   var current = null;      // the lesson in the form (may be unsaved)
   var draftReady = false;  // true when the form holds something that "post it" in the chat may publish
   var activeTopic = 0;     // the topic whose branch holds the post panel
+  var panelEl = $('post-panel'); // kept by reference: it is detached and re-attached when the tree re-renders
   var numKey = (window.MIM && window.MIM.numKey) || function (n) {
     var m = /^(\d+)\.(\d+)$/.exec(String(n || '').trim());
     return m ? parseInt(m[1], 10) * 1000 + parseInt(m[2], 10) : 999999;
@@ -156,7 +157,7 @@
       tree.querySelectorAll('details.branch').forEach(function (d) { openTopics[d.getAttribute('data-topic')] = d.open; });
     }
     if (activeTopic) openTopics[activeTopic] = true;
-    var panel = $('post-panel');
+    var panel = panelEl;
     if (panel.parentNode) panel.parentNode.removeChild(panel); // keep the panel alive while the tree is rebuilt
 
     tree.innerHTML = syllabus.map(function (g) {
@@ -191,10 +192,10 @@
   }
   // Put the post panel inside the active branch (or hide it).
   function mountPanel() {
-    var panel = $('post-panel');
+    var panel = panelEl;
     var slot = activeTopic ? document.querySelector('.slot[data-slot="' + activeTopic + '"]') : null;
-    if (slot) { slot.appendChild(panel); show('post-panel', true); }
-    else { $('tree').parentNode.appendChild(panel); show('post-panel', false); }
+    if (slot) { slot.appendChild(panel); panel.classList.remove('hidden'); }
+    else { $('tree').parentNode.appendChild(panel); panel.classList.add('hidden'); }
   }
   // Open a branch for posting: a new subtopic (lesson null) or an existing one.
   function openTopic(n, lesson) {
@@ -212,7 +213,7 @@
       greet(n);
     }
     renderTree();
-    window.scrollTo({ top: $('post-panel').offsetTop - 80, behavior: 'smooth' });
+    window.scrollTo({ top: panelEl.offsetTop - 80, behavior: 'smooth' });
     if (!lesson) $('chat-input').focus();
   }
   $('panel-close').addEventListener('click', function () { activeTopic = 0; current = null; draftReady = false; renderTree(); });
