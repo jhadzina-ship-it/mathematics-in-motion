@@ -81,6 +81,7 @@
     .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
     .chips .chip { padding: 6px 12px; font-size: .85rem; background: #fff; border-color: var(--line); }
     .chips .chip:hover { border-color: var(--blue); color: var(--blue); }
+    @media (max-width: 600px) { .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; } .chips .chip { white-space: nowrap; } }
     .composer { display: flex; align-items: flex-end; gap: 8px; border: 1.5px solid var(--line); border-radius: 26px; padding: 8px 8px 8px 20px; background: #fff; box-shadow: 0 4px 18px rgba(0,0,0,.06); }
     .composer:focus-within { border-color: var(--blue); box-shadow: 0 4px 22px rgba(0,86,210,.14); }
     .composer textarea { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; font: inherit; font-size: 1.05rem; line-height: 1.5; padding: 8px 0; max-height: 220px; background: transparent; color: var(--ink); }
@@ -140,39 +141,60 @@
     .q-head .kind select { width: auto; padding: 5px 10px; font-size: .85rem; }
     .upload { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .upload input[type=file] { font: inherit; font-size: .85rem; }
-    /* topic tree (branches) and the post panel that opens inside a branch */
-    .tree { display: grid; gap: 10px; }
-    .branch { border: 1px solid var(--line); border-radius: 12px; background: #fff; }
-    .branch > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 14px 16px; font-weight: 600; }
+    /* topic tree: one card per topic, subtopics listed inside */
+    .tree { display: grid; gap: 14px; }
+    .tree-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 -2px; }
+    .tree-head h2 { margin: 0; font-size: 1.35rem; }
+    .branch { border: 1.5px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+    .branch > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
     .branch > summary::-webkit-details-marker { display: none; }
-    .branch > summary:hover { background: var(--panel); border-radius: 12px; }
-    .branch .t-num { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; font-size: .85rem; font-weight: 700; display: grid; place-items: center; flex: none; }
+    .branch > summary:hover { background: var(--panel); border-radius: 16px; }
+    .branch[open] > summary:hover { border-radius: 16px 16px 0 0; }
+    .t-caret { color: var(--ink-3); flex: none; transition: transform .15s; }
+    .branch[open] > summary .t-caret { transform: rotate(90deg); }
+    .branch .t-num { width: 44px; height: 44px; border-radius: 12px; background: var(--blue); color: #fff; font-size: 1.05rem; font-weight: 700; display: grid; place-items: center; flex: none; }
+    .branch .t-num.plus { background: var(--blue-chip); color: var(--blue-dark); font-size: 1.4rem; }
     .branch .t-name { flex: 1; min-width: 0; }
-    .branch .t-name small { display: block; font-weight: 400; color: var(--ink-2); font-size: .82rem; }
-    .branch .t-count { font-weight: 400; font-size: .85rem; color: var(--ink-2); white-space: nowrap; }
+    .branch .t-title { font-size: 1.15rem; font-weight: 700; }
+    .branch .t-name .pill { vertical-align: 2px; margin-left: 4px; }
+    .branch .t-name small { display: block; font-weight: 400; color: var(--ink-2); font-size: .88rem; margin-top: 2px; }
+    .branch .t-count { font-weight: 600; font-size: .88rem; color: var(--ink-2); white-space: nowrap; }
+    .branch .t-add { white-space: nowrap; padding: 10px 16px; }
+    .branch .t-add .t-next { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,.22); font-size: .85em; }
+    @media (max-width: 760px) { .branch > summary { flex-wrap: wrap; } .branch .t-count { order: 5; } .branch .t-add { order: 6; width: 100%; justify-content: center; } }
     .branch.empty > summary .t-num { background: var(--blue-chip); color: var(--blue-dark); }
     .branch[open] > summary { border-bottom: 1px solid var(--line); }
-    .branch-body { padding: 10px 16px 14px 60px; }
-    @media (max-width: 600px) { .branch-body { padding-left: 16px; } }
-    .sub { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; }
+    .branch-body { padding: 10px 18px 16px; }
+    .sub { display: flex; align-items: center; gap: 14px; padding: 12px 12px; border-radius: 12px; cursor: pointer; }
+    .sub + .sub { border-top: 1px solid var(--line); border-radius: 0 0 12px 12px; }
     .sub:hover { background: var(--panel); }
     .sub.active { background: var(--blue-soft); box-shadow: inset 3px 0 0 var(--blue); }
-    .sub .n { font-weight: 700; color: var(--blue-dark); width: 44px; flex: none; }
-    .sub .ttl { flex: 1; min-width: 0; }
-    .sub .meta { color: var(--ink-2); font-size: .85rem; white-space: nowrap; }
-    .sub a.open { color: var(--blue); font-weight: 600; }
-    .branch-hint { font-size: .85rem; color: var(--ink-2); margin: 0 0 8px; }
-    .add-sub { margin-top: 10px; }
-    .branch.add-topic { border-style: dashed; }
-    .steps-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 16px; }
-    @media (max-width: 700px) { .steps-strip { grid-template-columns: 1fr; } }
-    .steps-strip .sstep { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: #fff; }
-    .steps-strip .sstep span { display: block; font-size: .85rem; color: var(--ink-2); }
-    .steps-strip .s-num { width: 30px; height: 30px; border-radius: 50%; background: var(--chip); color: var(--ink-2); display: grid; place-items: center; font-weight: 700; flex: none; font-size: .9rem; }
-    .steps-strip .sstep.now { border-color: var(--blue); background: var(--blue-soft); }
+    .sub .n { font-weight: 700; color: var(--blue-dark); background: var(--blue-chip); border-radius: 8px; padding: 6px 10px; flex: none; font-size: .95rem; min-width: 52px; text-align: center; }
+    .sub .ttl { flex: 1; min-width: 0; font-size: 1.05rem; font-weight: 600; }
+    .sub .ttl small { display: block; font-weight: 400; color: var(--ink-2); font-size: .85rem; margin-top: 1px; }
+    .sub .pill { flex: none; }
+    .sub a.open { flex: none; }
+    .branch-hint { font-size: .95rem; color: var(--ink-2); margin: 6px 0 4px; }
+    .add-topic-head { display: flex; gap: 14px; align-items: center; margin: 6px 0 12px; }
+    .add-topic-head strong { font-size: 1.15rem; }
+    .add-topic-row select, .add-topic-row input { font: inherit; font-size: 1rem; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; flex: 1; min-width: 0; background: #fff; }
+    .add-topic-row select:focus, .add-topic-row input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+    @media (max-width: 600px) { .add-topic-row { flex-wrap: wrap; } .add-topic-row .btn { width: 100%; justify-content: center; } }
+    .branch.add-topic { border-style: dashed; background: var(--panel); box-shadow: none; }
+    .branch.add-topic .branch-body { padding: 16px 18px 18px; }
+    .steps-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 4px 0 28px; }
+    @media (max-width: 700px) { .steps-strip { grid-template-columns: 1fr; gap: 10px; } }
+    .steps-strip .sstep { position: relative; display: flex; gap: 14px; align-items: flex-start; border: 1.5px solid var(--line); border-radius: 14px; padding: 16px 18px; background: #fff; }
+    .steps-strip .sstep strong { display: block; font-size: 1.05rem; }
+    .steps-strip .sstep span { display: block; font-size: .9rem; color: var(--ink-2); margin-top: 2px; }
+    .steps-strip .s-num { width: 38px; height: 38px; border-radius: 50%; background: var(--chip); color: var(--ink-2); display: grid; place-items: center; font-weight: 700; flex: none; font-size: 1rem; margin-top: 0; }
+    .steps-strip .sstep.now { border-color: var(--blue); background: var(--blue-soft); box-shadow: 0 6px 18px rgba(0,86,210,.12); }
+    .steps-strip .sstep.now::after { content: "You are here"; position: absolute; top: -11px; right: 14px; background: var(--blue); color: #fff; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
     .steps-strip .sstep.now .s-num { background: var(--blue); color: #fff; }
+    .steps-strip .sstep.done { border-color: var(--ok-soft); }
     .steps-strip .sstep.done .s-num { background: var(--ok-soft); color: var(--ok); }
-    .branch.empty-state { border-style: dashed; }
+    .branch.empty-state { border-style: dashed; box-shadow: none; }
+    .branch.empty-state .branch-body { padding: 18px; }
 
   </style>
 </head>
@@ -199,7 +221,7 @@
       <div class="wrap">
         <div class="eyebrow">Author tools</div>
         <h1>Your lessons</h1>
-        <p class="lead muted">Add a topic, add a subtopic from your video, check it and post. The assistant writes the lesson; you stay in charge.</p>
+        <p class="lead muted">Three steps: add a topic, add a subtopic from your video, check it and post. Each subtopic is one video lesson, and students take them in order.</p>
       </div>
     </section>
 
@@ -231,7 +253,6 @@
       <div class="wrap">
         <div id="topics-view">
           <div class="steps-strip" id="steps"></div>
-          <p class="help" style="margin:0 0 14px;font-size:.95rem">Topics are the branches; each subtopic inside a topic is one video lesson. Students take the subtopics of a topic in order, so the next number is given automatically.</p>
           <div id="tree" class="tree"></div>
         </div>
 
@@ -443,6 +464,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
-  <script src="assets/admin.js?v=13"></script>
+  <script src="assets/admin.js?v=14"></script>
 </body>
 </html>

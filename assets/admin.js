@@ -154,8 +154,7 @@
   function renderTree() {
     var tree = $('tree');
     if (openTopics === null) {
-      openTopics = {};
-      lessons.forEach(function (l) { openTopics[lessonTopic(l)] = true; });
+      openTopics = {}; // every topic starts open; a topic the author collapses stays collapsed this session
     } else {
       tree.querySelectorAll('details.branch').forEach(function (d) { openTopics[d.getAttribute('data-topic')] = d.open; });
     }
@@ -163,25 +162,25 @@
 
     var taken = {}; ownTopics.forEach(function (x) { taken[x.number] = true; });
     var menu = syllabus.filter(function (x) { return !taken[x.number]; }).map(function (x) { return '<option value="' + x.number + '">Topic ' + x.number + ' · ' + esc(x.name) + ' (syllabus)</option>'; }).join('') + '<option value="own">My own topic (not in the syllabus)</option>';
-    tree.innerHTML = (allTopics().length ? '' : '<div class="branch empty-state"><div class="branch-body" style="padding-left:16px"><strong>No topics yet.</strong><p class="branch-hint">Start with step 1: add your first topic below.</p></div></div>') + allTopics().map(function (g) {
+    var head = '<div class="tree-head"><h2>Your topics</h2><span class="muted">' + (allTopics().length ? allTopics().length + ' topic' + (allTopics().length === 1 ? '' : 's') + ' · ' + lessons.length + ' subtopic' + (lessons.length === 1 ? '' : 's') : 'none yet') + '</span></div>';
+    tree.innerHTML = head + (allTopics().length ? '' : '<div class="branch empty-state"><div class="branch-body"><strong>No topics yet.</strong><p class="branch-hint">Start with step 1: add your first topic below.</p></div></div>') + allTopics().map(function (g) {
       var inTopic = lessons.filter(function (l) { return lessonTopic(l) === g.number; }).sort(function (a, b) { return numKey(a.number) - numKey(b.number); });
       var forms = (g.subtopics || []).map(function (s) { return s.name; }).join(', ');
       var rows = inTopic.map(function (l) {
         var n = l.questions.length;
-        return '<div class="sub' + (current && current.id === l.id ? ' active' : '') + '"><span class="n">' + esc(l.number) + '</span>' +
-          '<span class="ttl">' + esc(l.title) + '</span>' + statusPill(l.status) +
-          '<span class="meta">' + n + ' question' + (n === 1 ? '' : 's') + '</span>' +
-          '<a href="#" class="open" data-id="' + esc(l.id) + '">Open</a></div>';
+        return '<div class="sub' + (current && current.id === l.id ? ' active' : '') + '" data-open="' + esc(l.id) + '"><span class="n">' + esc(l.number) + '</span>' +
+          '<span class="ttl">' + esc(l.title) + '<small>' + n + ' question' + (n === 1 ? '' : 's') + (l.level ? ' · ' + esc(l.level) : '') + '</small></span>' + statusPill(l.status) +
+          '<a href="#" class="btn btn-outline btn-sm open" data-id="' + esc(l.id) + '">Open</a></div>';
       }).join('');
-      return '<details class="branch' + (inTopic.length ? '' : ' empty') + '" data-topic="' + g.number + '"' + (openTopics[g.number] ? ' open' : '') + '>' +
-        '<summary><span class="t-num">' + g.number + '</span><span class="t-name">Topic ' + g.number + ' · ' + esc(g.name) + (g.own ? ' <span class="pill pill-amber">your own topic</span>' : ' <span class="pill">syllabus</span>') + (forms ? '<small>' + esc(forms) + '</small>' : (g.description ? '<small>' + esc(g.description) + '</small>' : '')) + '</span>' +
-        '<span class="t-count">' + (inTopic.length ? inTopic.length + ' subtopic' + (inTopic.length === 1 ? '' : 's') : 'no subtopics yet') + '</span></summary>' +
-        '<div class="branch-body">' + (rows || '<p class="branch-hint">Nothing posted in this topic yet.' + ' <button class="linkish" type="button" data-remove-topic="' + g.number + '">Remove this topic</button>' + '</p>') +
-        '<div class="add-sub"><button class="btn btn-primary btn-sm" type="button" data-add="' + g.number + '">+ Add a subtopic (' + nextNumber(g.number) + ')</button></div>' +
-        '<div class="slot" data-slot="' + g.number + '"></div></div></details>';
+      return '<details class="branch' + (inTopic.length ? '' : ' empty') + '" data-topic="' + g.number + '"' + (openTopics[g.number] !== false ? ' open' : '') + '>' +
+        '<summary><svg class="t-caret" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg><span class="t-num">' + g.number + '</span>' +
+        '<span class="t-name"><span class="t-title">Topic ' + g.number + ' · ' + esc(g.name) + '</span>' + (g.own ? ' <span class="pill pill-amber">your own topic</span>' : ' <span class="pill">syllabus</span>') + (forms ? '<small>' + esc(forms) + '</small>' : (g.description ? '<small>' + esc(g.description) + '</small>' : '')) + '</span>' +
+        '<span class="t-count">' + (inTopic.length ? inTopic.length + ' subtopic' + (inTopic.length === 1 ? '' : 's') : 'no subtopics yet') + '</span>' +
+        '<button class="btn btn-primary t-add" type="button" data-add="' + g.number + '">+ Add a subtopic <span class="t-next">' + nextNumber(g.number) + '</span></button></summary>' +
+        '<div class="branch-body">' + (rows || '<p class="branch-hint">Nothing posted in this topic yet. Press <strong>+ Add a subtopic</strong> to make the first one from a video.' + ' <button class="linkish" type="button" data-remove-topic="' + g.number + '">Remove this topic</button>' + '</p>') + '</div></details>';
     }).join('') +
-      '<div class="branch add-topic"><div class="branch-body" style="padding-left:16px"><strong>Step 1 · Add a topic</strong><p class="branch-hint">Pick a syllabus topic (it keeps its syllabus number) or name your own (it gets number ' + nextTopicNumber() + ').</p>' +
-      '<div class="with-btn"><select id="new-topic-pick" style="font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;flex:1">' + menu + '</select><input type="text" id="new-topic-name" placeholder="Name of your own topic" class="hidden" style="font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;flex:1"><button class="btn btn-primary btn-sm" type="button" id="add-topic">Add topic</button></div><div class="status" id="topic-status"></div></div></div>';
+      '<div class="branch add-topic"><div class="branch-body"><div class="add-topic-head"><span class="t-num plus">+</span><div><strong>Add a topic</strong><p class="branch-hint" style="margin:0">Pick a syllabus topic (it keeps its syllabus number) or name your own (it gets number ' + nextTopicNumber() + ').</p></div></div>' +
+      '<div class="with-btn add-topic-row"><select id="new-topic-pick">' + menu + '</select><input type="text" id="new-topic-name" placeholder="Name of your own topic" class="hidden"><button class="btn btn-primary" type="button" id="add-topic">Add topic</button></div><div class="status" id="topic-status"></div></div></div>';
 
     $('add-topic').addEventListener('click', addOwnTopic);
     $('new-topic-pick').addEventListener('change', function () { show('new-topic-name', $('new-topic-pick').value === 'own'); if ($('new-topic-pick').value === 'own') $('new-topic-name').focus(); });
@@ -209,7 +208,14 @@
       });
     });
     tree.querySelectorAll('[data-add]').forEach(function (b) {
-      b.addEventListener('click', function () { openTopic(parseInt(b.getAttribute('data-add'), 10), null); });
+      b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); openTopic(parseInt(b.getAttribute('data-add'), 10), null); });
+    });
+    tree.querySelectorAll('.sub[data-open]').forEach(function (row) {
+      row.addEventListener('click', function (e) {
+        if (e.target.closest('a.open')) return;
+        var l = lessons.filter(function (x) { return x.id === row.getAttribute('data-open'); })[0];
+        if (l) edit(l);
+      });
     });
     mountPanel();
   }
