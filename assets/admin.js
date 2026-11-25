@@ -219,8 +219,7 @@
         if (r.data && r.data.error) throw new Error(r.data.error);
         waiting.remove();
         addMsg('bot', r.data.reply);
-        chat.push({ role: 'assistant', content: r.data.reply + (r.data.lesson ? '
-[Draft "' + r.data.lesson.title + '" with ' + r.data.lesson.questions.length + ' questions placed in the form]' : '') });
+        chat.push({ role: 'assistant', content: r.data.reply + (r.data.lesson ? '\n[Draft "' + r.data.lesson.title + '" with ' + r.data.lesson.questions.length + ' questions placed in the form]' : '') });
         if (r.data.lesson) applyDraft(r.data.lesson);
       })
       .catch(function (err) { waiting.remove(); addMsg('sys', 'Something went wrong: ' + ((err && err.message) || err)); chat.pop(); })
