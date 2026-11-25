@@ -1,4 +1,7 @@
-/* Mathematics in Motion - admin page. Uses supabase-js v2 (loaded from a CDN in admin.html). */
+/* Mathematics in Motion - admin page, chat-first. Uses supabase-js v2 (loaded from a CDN in admin.html).
+ * The assistant (generate-lesson Edge Function) writes the lesson; the author sees a draft preview and posts it.
+ * The full form stays in the page, hidden behind "Edit details by hand", and is the single source of truth for what gets saved.
+ * Lessons are grouped by Syllabus B topic (content/syllabus-b.json) and numbered within the topic: 10.1, 10.2, ... */
 (function () {
   var cfg = window.MIM_CONFIG || {};
   var $ = function (id) { return document.getElementById(id); };
@@ -10,7 +13,12 @@
   }
   var sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
   var lessons = [];
-  var current = null;
+  var current = null;      // the lesson in the form (may be unsaved)
+  var draftReady = false;  // true when the form holds something that "post it" in the chat may publish
+  var numKey = (window.MIM && window.MIM.numKey) || function (n) {
+    var m = /^(\d+)\.(\d+)$/.exec(String(n || '').trim());
+    return m ? parseInt(m[1], 10) * 1000 + parseInt(m[2], 10) : 999999;
+  };
 
   function status(id, msg, ok) {
     var el = $(id);
@@ -18,7 +26,7 @@
     el.classList.add('show');
     el.classList.toggle('ok', !!ok);
     el.classList.toggle('no', !ok);
-    if (ok) setTimeout(function () { el.classList.remove('show'); }, 4000);
+    if (ok) setTimeout(function () { el.classList.remove('show'); }, 5000);
   }
 
   function slugify(s) {
@@ -32,6 +40,69 @@
     return /^[A-Za-z0-9_-]{11}$/.test(s) ? s : '';
   }
 
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function lessonUrl(slug) { return 'lesson.html?id=' + encodeURIComponent(slug || ''); }
+
+  // ---------- syllabus (content/syllabus-b.json), with the topic names as a fallback if the file cannot be fetched
+  var TOPIC_NAMES = ['Real Numbers', 'Sets', 'Financial Mathematics', 'Measures and Mensuration', 'Graphs', 'Variation', 'Algebra',
+    'Geometry', 'Statistics', 'Trigonometry', 'Matrices', 'Vectors', 'Transformations', 'Probability'];
+  var syllabus = TOPIC_NAMES.map(function (name, i) { return { number: i + 1, name: name, subtopics: [] }; });
+  var syllabusReady = fetch('content/syllabus-b.json').then(function (r) { return r.json(); }).then(function (j) {
+    if (j && Array.isArray(j.topics) && j.topics.length) syllabus = j.topics;
+  }).catch(function () { /* keep the fallback names */ }).then(function () {
+    fillTopicSelect();
+  });
+
+  function topicOf(n) {
+    n = parseInt(n, 10);
+    return syllabus.filter(function (t) { return t.number === n; })[0] || null;
+  }
+  function topicName(n) { var t = topicOf(n); return t ? t.name : ''; }
+  function chapterOf(n) { var t = topicOf(n); return t ? 'Topic ' + t.number + ' · ' + t.name : ''; }
+  // The syllabus topic a lesson belongs to: the stored field, else the prefix of its number.
+  function lessonTopic(l) {
+    var t = parseInt(l.syllabus_topic, 10);
+    if (t >= 1 && t <= 14) return t;
+    var m = /^(\d+)\./.exec(String(l.number || ''));
+    return m ? parseInt(m[1], 10) : 0;
+  }
+  function nextNumber(topic, exceptId) {
+    var max = 0;
+    lessons.forEach(function (l) {
+      if (exceptId && l.id === exceptId) return;
+      var m = /^(\d+)\.(\d+)$/.exec(String(l.number || '').trim());
+      if (m && parseInt(m[1], 10) === topic) max = Math.max(max, parseInt(m[2], 10));
+    });
+    return topic + '.' + (max + 1);
+  }
+
+  function fillTopicSelect() {
+    var sel = $('f-syllabus-topic');
+    var keep = sel.value;
+    sel.innerHTML = '<option value="">Choose a topic…</option>' + syllabus.map(function (t) {
+      return '<option value="' + t.number + '">' + t.number + ' · ' + esc(t.name) + '</option>';
+    }).join('');
+    sel.value = keep;
+    fillSubtopics();
+  }
+  function fillSubtopics() {
+    var t = topicOf($('f-syllabus-topic').value);
+    $('subtopic-list').innerHTML = (t ? t.subtopics || [] : []).map(function (s) {
+      return '<option value="' + esc(s.name) + '"></option>';
+    }).join('');
+  }
+  $('f-syllabus-topic').addEventListener('change', function () {
+    fillSubtopics();
+    var t = parseInt($('f-syllabus-topic').value, 10);
+    // A new lesson (or one without a number yet) takes the next free number in the chosen topic.
+    if (t && (!$('f-id').value || !$('f-number').value.trim())) $('f-number').value = nextNumber(t, $('f-id').value);
+    updateMeta();
+  });
+
   // ---------- auth
   sb.auth.onAuthStateChange(function (_e, session) { route(session); });
   sb.auth.getSession().then(function (r) { route(r.data.session); });
@@ -41,7 +112,7 @@
     show('editor', !!session);
     if (session) {
       $('whoami').textContent = 'Signed in as ' + session.user.email;
-      loadLessons();
+      syllabusReady.then(function () { loadLessons('first'); });
     }
   }
 
@@ -56,72 +127,183 @@
   $('signout').addEventListener('click', function () { sb.auth.signOut(); });
 
   // ---------- lessons list
-  function loadLessons() {
+  // select: 'first' leaves the page on the chat (nothing opened); 'keep' re-opens the current lesson after a save; 'new' clears everything.
+  function loadLessons(select) {
     return sb.from('lessons').select('*, questions(*)').order('number', { ascending: true })
       .then(function (r) {
-        if (r.error) { status('save-status', 'Could not load lessons: ' + r.error.message, false); return; }
-        lessons = r.data;
-        lessons.forEach(function (l) { l.questions.sort(function (a, b) { return a.position - b.position; }); });
-        renderList();
-        if (!current && lessons.length) edit(lessons[0]);
-        else if (!current) newLesson();
+        if (r.error) { status('ai-status', 'Could not load lessons: ' + r.error.message, false); return; }
+        lessons = r.data || [];
+        lessons.forEach(function (l) { l.questions = (l.questions || []).sort(function (a, b) { return a.position - b.position; }); });
+        lessons.sort(function (a, b) { return numKey(a.number) - numKey(b.number); });
+        if (select === 'new') { newLesson(true); return; }
+        if (select === 'keep' && current && current.id) {
+          var l = lessons.filter(function (x) { return x.id === current.id; })[0];
+          if (l) { edit(l, true); return; }
+        }
+        if (!current) clearForm();
+        renderTree();
       });
   }
 
-  function renderList() {
-    $('lesson-list').innerHTML = lessons.map(function (l) {
-      return '<a href="#" data-id="' + l.id + '" class="' + (current && current.id === l.id ? 'active' : '') + '">' +
-        '<strong>' + esc(l.number) + '</strong> ' + esc(l.title) +
-        '<span class="small">' + esc(l.status) + ' · ' + l.questions.length + ' question' + (l.questions.length === 1 ? '' : 's') + '</span></a>';
-    }).join('') || '<p class="small muted">No lessons yet.</p>';
-    $('lesson-list').querySelectorAll('a').forEach(function (a) {
+  var openTopics = null; // which topics are expanded in the left column; remembered across re-renders
+  function renderTree() {
+    var tree = $('topic-tree');
+    if (openTopics === null) {
+      openTopics = {};
+      lessons.forEach(function (l) { openTopics[lessonTopic(l)] = true; });
+    } else {
+      tree.querySelectorAll('details.topic').forEach(function (d) { openTopics[d.getAttribute('data-topic')] = d.open; });
+    }
+    var curTopic = current ? (parseInt($('f-syllabus-topic').value, 10) || lessonTopic(current)) : 0;
+    if (curTopic) openTopics[curTopic] = true;
+
+    var groups = syllabus.map(function (t) { return { number: t.number, name: t.name }; });
+    var unsorted = lessons.filter(function (l) { return !topicOf(lessonTopic(l)); });
+    if (unsorted.length) groups.push({ number: 0, name: 'Not yet placed in a topic' });
+
+    tree.innerHTML = groups.map(function (g) {
+      var inTopic = lessons.filter(function (l) { return g.number === 0 ? !topicOf(lessonTopic(l)) : lessonTopic(l) === g.number; })
+        .sort(function (a, b) { return numKey(a.number) - numKey(b.number); });
+      var items = inTopic.length ? inTopic.map(function (l) {
+        var n = l.questions.length;
+        return '<a href="#" data-id="' + esc(l.id) + '" class="' + (current && current.id === l.id ? 'active' : '') + '">' +
+          '<strong>' + esc(l.number) + '</strong> ' + esc(l.title) +
+          '<span class="small">' + statusPill(l.status) + '<span>' + n + ' question' + (n === 1 ? '' : 's') + '</span></span></a>';
+      }).join('') : '<p class="none">no lessons yet</p>';
+      return '<details class="topic' + (inTopic.length ? '' : ' empty') + '" data-topic="' + g.number + '"' + (openTopics[g.number] ? ' open' : '') + '>' +
+        '<summary><span class="t-num">' + (g.number || '?') + '</span><span class="t-name">' + esc(g.name) + '</span>' +
+        '<span class="t-count">' + (inTopic.length ? inTopic.length : '') + '</span>' +
+        '<svg class="t-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></summary>' +
+        '<div class="list">' + items + '</div></details>';
+    }).join('');
+
+    tree.querySelectorAll('a[data-id]').forEach(function (a) {
       a.addEventListener('click', function (e) {
         e.preventDefault();
         var l = lessons.filter(function (x) { return x.id === a.getAttribute('data-id'); })[0];
-        if (l) edit(l);
+        if (l) { edit(l); if (window.innerWidth <= 860) $('side').classList.add('collapsed'); }
       });
     });
   }
-
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
+  function statusPill(s) {
+    var cls = { live: 'pill-green', planned: 'pill-grey', draft: 'pill-amber' }[s] || 'pill-grey';
+    var label = { live: 'Live', planned: 'Planned', draft: 'Draft' }[s] || s;
+    return '<span class="pill ' + cls + '">' + esc(label) + '</span>';
   }
 
-  // ---------- form
-  var FIELDS = { number: 'f-number', status: 'f-status', level: 'f-level', title: 'f-title', slug: 'f-slug', topic: 'f-topic',
-    chapter: 'f-chapter', duration: 'f-duration', hook: 'f-hook', summary: 'f-summary', outcomes: 'f-outcomes', skills: 'f-skills', theorem: 'f-theorem',
-    explanation: 'f-explanation', figure: 'f-figure', us_name: 'f-us-name', textbook_envision: 'f-tb-envision',
-    textbook_bigideas: 'f-tb-bigideas', textbook_hmh: 'f-tb-hmh', standard: 'f-standard' };
+  // The lessons column folds away on a phone.
+  $('side-toggle').addEventListener('click', function () {
+    var collapsed = $('side').classList.toggle('collapsed');
+    $('side-toggle').textContent = collapsed ? 'Show' : 'Hide';
+    $('side-toggle').setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  });
+  if (window.innerWidth <= 860) { $('side').classList.add('collapsed'); $('side-toggle').textContent = 'Show'; $('side-toggle').setAttribute('aria-expanded', 'false'); }
 
-  function edit(l) {
-    current = l;
+  // ---------- form (hidden by default; the single source of truth for what is saved)
+  // Lesson fields that the form edits, keyed by column name. topic and chapter are derived from syllabus_topic on save.
+  var FIELDS = {
+    number: 'f-number', status: 'f-status', level: 'f-level', title: 'f-title', slug: 'f-slug', duration: 'f-duration',
+    syllabus_topic: 'f-syllabus-topic', syllabus_form: 'f-syllabus-form', syllabus_subtopic: 'f-syllabus-subtopic',
+    syllabus_objective: 'f-syllabus-objective', textbook_ref: 'f-textbook-ref',
+    hook: 'f-hook', summary: 'f-summary', outcomes: 'f-outcomes', skills: 'f-skills', theorem: 'f-theorem',
+    explanation: 'f-explanation', figure: 'f-figure'
+  };
+
+  function fillForm(l) {
     $('f-id').value = l.id || '';
     Object.keys(FIELDS).forEach(function (k) { $(FIELDS[k]).value = l[k] == null ? '' : l[k]; });
+    var t = lessonTopic(l);
+    $('f-syllabus-topic').value = t ? String(t) : '';
+    fillSubtopics();
     $('f-video').value = l.video_id ? 'https://youtu.be/' + l.video_id : '';
-    $('f-tb-confirmed').checked = !!l.textbook_confirmed;
     $('questions').innerHTML = '';
-    (l.questions || []).forEach(addQuestion);
-    $('preview').href = 'lesson.html?id=' + encodeURIComponent(l.slug || '');
-    $('delete-lesson').classList.toggle('hidden', !l.id);
-    renderList();
-    window.scrollTo({ top: $('editor').offsetTop - 70, behavior: 'smooth' });
+    (l.questions || []).forEach(function (q) { addQuestion(q); });
+    $('form-state').textContent = l.id ? 'Editing lesson ' + (l.number || '') : (l.title ? 'New draft' : 'New lesson');
+    $('form-state').className = 'pill ' + (l.id ? '' : 'pill-grey');
+    lockNumber(true);
+    updateMeta();
   }
 
-  function newLesson() {
-    edit({ status: 'draft', level: 'Forms 3 and 4', questions: [] });
+  // Open a lesson: fill the (hidden) form and show its preview card.
+  function edit(l, quiet) {
+    current = l;
+    fillForm(l);
+    draftReady = !!l.title;
+    show('lesson-form', false);
+    renderPreview();
+    renderTree();
+    if (!quiet) window.scrollTo({ top: $('draft-card').offsetTop - 80, behavior: 'smooth' });
   }
-  $('new-lesson').addEventListener('click', newLesson);
+
+  function clearForm() {
+    current = null;
+    draftReady = false;
+    fillForm({ status: 'draft', level: 'Forms 3 and 4', questions: [] });
+    show('lesson-form', false);
+    show('draft-card', false);
+    renderTree();
+  }
+  function newLesson(quiet) {
+    clearForm();
+    if (!quiet) {
+      window.scrollTo({ top: $('ai-panel').offsetTop - 80, behavior: 'smooth' });
+      $('chat-input').focus();
+    }
+  }
+  $('new-lesson').addEventListener('click', function () { newLesson(false); });
 
   $('f-title').addEventListener('blur', function () {
     if (!$('f-slug').value) $('f-slug').value = slugify($('f-title').value);
+    updateMeta();
   });
 
-  // ---------- questions
+  // The lesson number is set by the syllabus topic; "Edit" unlocks it for the rare renumbering.
+  function lockNumber(on) {
+    $('f-number').readOnly = on;
+    $('number-unlock').textContent = on ? 'Edit' : 'Lock';
+    $('number-unlock').setAttribute('aria-pressed', on ? 'false' : 'true');
+  }
+  $('number-unlock').addEventListener('click', function () {
+    var unlocked = !$('f-number').readOnly;
+    lockNumber(unlocked);
+    if (!unlocked) $('f-number').focus();
+  });
+
+  // One-line summaries on the collapsed sections of the form.
+  function updateMeta() {
+    var t = parseInt($('f-syllabus-topic').value, 10);
+    var st = $('f-status').options[$('f-status').selectedIndex];
+    $('meta-basics').textContent = [$('f-number').value, $('f-title').value, st ? st.text.replace(/\s*\(.*\)$/, '') : ''].filter(Boolean).join(' · ');
+    $('meta-syllabus').textContent = [t ? 'Topic ' + t + ' ' + topicName(t) : 'no topic yet', $('f-syllabus-form').value, $('f-syllabus-subtopic').value].filter(Boolean).join(' · ');
+    var words = $('f-explanation').value.trim() ? $('f-explanation').value.trim().split(/\s+/).length : 0;
+    $('meta-content').textContent = words ? 'explanation ' + words + ' words' + ($('f-figure').value ? ' · diagram' : '') : 'empty';
+    var n = $('questions').querySelectorAll('.q').length;
+    var checks = 0;
+    $('questions').querySelectorAll('select[data-f="kind"]').forEach(function (s) { if (s.value === 'video_check') checks++; });
+    $('meta-questions').textContent = n ? n + ' question' + (n === 1 ? '' : 's') + (checks ? '' : ' · no video check') : 'none yet';
+  }
+  ['f-number', 'f-title', 'f-status', 'f-syllabus-form', 'f-syllabus-subtopic', 'f-explanation', 'f-figure'].forEach(function (id) {
+    $(id).addEventListener('input', updateMeta);
+    $(id).addEventListener('change', updateMeta);
+  });
+
+  $('toggle-form').addEventListener('click', function () {
+    var open = $('lesson-form').classList.contains('hidden');
+    show('lesson-form', open);
+    if (open) window.scrollTo({ top: $('lesson-form').offsetTop - 80, behavior: 'smooth' });
+  });
+  $('close-form').addEventListener('click', function () {
+    show('lesson-form', false);
+    renderPreview();
+    window.scrollTo({ top: $('draft-card').offsetTop - 80, behavior: 'smooth' });
+  });
+
+  // ---------- questions (inside the hidden form)
   function addQuestion(q) {
     q = q || {};
     var node = $('q-template').content.firstElementChild.cloneNode(true);
+    var isFirst = $('questions').querySelectorAll('.q').length === 0;
+    if (q.kind == null) q.kind = isFirst ? 'video_check' : 'calculation';
     node.querySelectorAll('[data-f]').forEach(function (el) {
       var k = el.getAttribute('data-f');
       if (q[k] != null) el.value = q[k];
@@ -133,6 +315,7 @@
     node.querySelector('[data-act="down"]').addEventListener('click', function () {
       if (node.nextElementSibling) node.parentNode.insertBefore(node.nextElementSibling, node); renumber();
     });
+    node.querySelector('select[data-f="kind"]').addEventListener('change', updateMeta);
     var file = node.querySelector('[data-upload-q]');
     file.addEventListener('change', function () { upload(file.files[0], node.querySelector('[data-f="figure"]')); });
     $('questions').appendChild(node);
@@ -140,6 +323,7 @@
   }
   function renumber() {
     $('questions').querySelectorAll('.q').forEach(function (n, i) { n.querySelector('.q-n').textContent = i + 1; });
+    updateMeta();
   }
   $('add-question').addEventListener('click', function () { addQuestion(); });
 
@@ -147,6 +331,7 @@
     return Array.prototype.map.call($('questions').querySelectorAll('.q'), function (n, i) {
       var q = { position: i + 1 };
       n.querySelectorAll('[data-f]').forEach(function (el) { q[el.getAttribute('data-f')] = el.value; });
+      q.kind = q.kind === 'video_check' ? 'video_check' : 'calculation';
       q.answer = parseFloat(q.answer);
       q.tolerance = parseFloat(q.tolerance || '0.01');
       return q;
@@ -162,6 +347,7 @@
       if (r.error) { status('save-status', 'Upload failed: ' + r.error.message, false); return; }
       target.value = sb.storage.from('figures').getPublicUrl(name).data.publicUrl;
       status('save-status', 'Uploaded.', true);
+      updateMeta();
     });
   }
   document.querySelector('[data-upload-for="f-figure"]').addEventListener('change', function (e) {
@@ -174,40 +360,158 @@
     Object.keys(FIELDS).forEach(function (k) { row[k] = $(FIELDS[k]).value.trim(); });
     row.slug = slugify(row.slug || row.title);
     row.video_id = videoId($('f-video').value);
-    row.textbook_confirmed = $('f-tb-confirmed').checked;
+    var t = parseInt(row.syllabus_topic, 10);
+    if (!(t >= 1 && t <= 14)) { var m = /^(\d+)\./.exec(row.number); t = m ? parseInt(m[1], 10) : 0; }
+    row.syllabus_topic = t >= 1 && t <= 14 ? t : null;
+    row.topic = row.syllabus_topic ? topicName(row.syllabus_topic) : '';
+    row.chapter = row.syllabus_topic ? chapterOf(row.syllabus_topic) : '';
     row.questions = readQuestions();
     return row;
   }
 
+  // ---------- draft preview card (what Jephias sees instead of the form)
+  function renderPreview() {
+    var l = collect();
+    var id = $('f-id').value;
+    if (!l.title) { show('draft-card', false); return; }
+    show('draft-card', true);
+    $('d-eyebrow').textContent = id ? 'Lesson ' + (l.number || '') : 'Draft preview · lesson ' + (l.number || '');
+    $('d-title').textContent = l.title;
+    var line = [l.syllabus_topic ? chapterOf(l.syllabus_topic) : 'no syllabus topic yet', l.syllabus_form || l.level, l.syllabus_subtopic, l.duration ? l.duration + ' video' : ''].filter(Boolean).join(' · ');
+    $('d-line').textContent = line;
+    $('d-status').innerHTML = statusPill(id ? l.status : 'draft') + (id ? '' : ' <span class="pill pill-grey">not saved yet</span>');
+    $('d-thumb').innerHTML = l.video_id ? '<img src="https://i.ytimg.com/vi/' + esc(l.video_id) + '/hqdefault.jpg" alt="">' : '<span>no video yet</span>';
+    $('d-summary').textContent = l.summary || l.hook || '';
+    $('d-qs').innerHTML = l.questions.map(function (q) {
+      var ans = isNaN(q.answer) ? '(no answer yet)' : q.answer + (q.unit ? ' ' + q.unit : '');
+      return '<li>' + esc(q.prompt || '(empty question)') + (q.kind === 'video_check' ? '<span class="pill">From the video</span>' : '') +
+        '<span class="ans">Answer: ' + esc(ans) + '</span></li>';
+    }).join('') || '<li class="help" style="list-style:none;margin-left:-22px">No questions yet. Ask the assistant to add some.</li>';
+    show('delete-lesson', !!id);
+    show('view-lesson', !!(id && l.slug));
+    $('view-lesson').href = lessonUrl(l.slug);
+    $('draft-status').classList.remove('show');
+  }
+
+  // ---------- save (one path for the preview buttons, the form and "post it" in the chat)
+  function save(statusOverride, where) {
+    where = where || 'draft-status';
+    if (statusOverride) $('f-status').value = statusOverride;
+    var row = collect();
+    var qs = row.questions; delete row.questions;
+    var fail = function (msg, sec) { status(where, msg, false); if (sec) { show('lesson-form', true); $(sec).open = true; } return Promise.reject(new Error(msg)); };
+    if (!row.title) return fail('A title is needed.', 'sec-basics');
+    if (!row.syllabus_topic) return fail('Choose the syllabus topic the lesson belongs to.', 'sec-syllabus');
+    if (!row.number) row.number = nextNumber(row.syllabus_topic, $('f-id').value);
+    if (!/^\d+\.\d+$/.test(row.number)) return fail('The lesson number should look like 10.2 (topic, dot, position).', 'sec-basics');
+    if ($('f-video').value.trim() && !row.video_id) return fail('That does not look like a YouTube link.', 'sec-basics');
+    for (var i = 0; i < qs.length; i++) {
+      if (!qs[i].prompt.trim() || isNaN(qs[i].answer)) return fail('Question ' + (i + 1) + ' needs a prompt and a numeric answer.', 'sec-questions');
+    }
+    if ($('f-id').value) row.id = $('f-id').value;
+    $(where).textContent = 'Saving…'; $(where).className = 'status show ok';
+
+    return sb.from('lessons').upsert(row, { onConflict: 'slug' }).select('id, slug').single()
+      .then(function (r) {
+        if (r.error) throw r.error;
+        var id = r.data.id;
+        return sb.from('questions').delete().eq('lesson_id', id).then(function (d) {
+          if (d.error) throw d.error;
+          if (!qs.length) return { data: [] };
+          return sb.from('questions').insert(qs.map(function (q) { q.lesson_id = id; return q; }));
+        }).then(function (ins) {
+          if (ins.error) throw ins.error;
+          current = { id: id, slug: r.data.slug };
+          return loadLessons('keep');
+        }).then(function () {
+          var el = $(where);
+          el.innerHTML = (row.status === 'live' ? 'Posted. The lesson is live: ' : 'Saved as ' + esc(row.status) + ': ') +
+            '<a href="' + lessonUrl(r.data.slug) + '" target="_blank" rel="noopener">view ' + esc(row.number) + ' ' + esc(row.title) + '</a>.';
+          el.classList.add('show', 'ok'); el.classList.remove('no');
+          return { id: id, slug: r.data.slug, status: row.status, number: row.number, title: row.title };
+        });
+      })
+      .catch(function (err) { status(where, 'Save failed: ' + (err.message || err), false); throw err; });
+  }
+  var swallow = function () {};
+  $('post-live').addEventListener('click', function () { save('live').catch(swallow); });
+  $('save-draft').addEventListener('click', function () { save('draft').catch(swallow); });
+  $('ask-change').addEventListener('click', function () {
+    window.scrollTo({ top: $('ai-panel').offsetTop - 80, behavior: 'smooth' });
+    $('chat-input').focus();
+  });
+  $('lesson-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    save(null, 'save-status').then(function () { show('lesson-form', false); renderPreview(); $('draft-status').innerHTML = $('save-status').innerHTML; $('draft-status').className = 'status show ok'; }).catch(swallow);
+  });
+
+  $('delete-lesson').addEventListener('click', function () {
+    if (!current || !current.id) return;
+    if (!confirm('Delete "' + ($('f-title').value || 'this lesson') + '" and its questions? This cannot be undone.')) return;
+    sb.from('lessons').delete().eq('id', current.id).then(function (r) {
+      if (r.error) { status('draft-status', 'Delete failed: ' + r.error.message, false); return; }
+      current = null;
+      loadLessons('new').then(function () { addMsg('sys', 'Lesson deleted.'); });
+    });
+  });
+
   // ---------- chat with the assistant (generate-lesson Edge Function)
   var chat = [];
-  function addMsg(role, text) {
-    var d = document.createElement('div'); d.className = 'msg ' + role; d.textContent = text;
+  function addMsg(role, text, html) {
+    var d = document.createElement('div'); d.className = 'msg ' + role;
+    if (html) d.innerHTML = html; else d.textContent = text;
     $('chat-log').appendChild(d); $('chat-log').scrollTop = 1e9; return d;
   }
   function greet() {
     $('chat-log').innerHTML = ''; chat = [];
-    addMsg('bot', 'Hi Jephias. Tell me about the lesson you want to post and paste the YouTube link. I will ask if I need anything else, then put a draft in the form below for you to check.');
+    addMsg('bot', 'Hi Jephias. Tell me about the lesson you want to post and paste the YouTube link. I will ask if I need anything else, then show you a draft to check. When it looks right, press Post as Live or just say "post it".');
   }
   function applyDraft(lesson) {
     var existing = lessons.filter(function (l) { return l.slug === lesson.slug; })[0];
     lesson.id = existing ? existing.id : ($('f-slug').value === lesson.slug ? $('f-id').value : '');
     lesson.figure = $('f-slug').value === lesson.slug ? ($('f-figure').value || '') : '';
-    lesson.textbook_confirmed = false;
-    lesson.questions = (lesson.questions || []).map(function (q, i) { q.position = i + 1; q.figure = q.figure || ''; return q; });
-    edit(lesson);
-    status('ai-status', 'Draft is in the form. Check every answer, then Save lesson.', true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!lesson.status) lesson.status = 'draft';
+    lesson.questions = (lesson.questions || []).map(function (q, i) {
+      q.position = i + 1; q.figure = q.figure || ''; q.kind = q.kind === 'video_check' ? 'video_check' : 'calculation'; return q;
+    });
+    edit(lesson, true);
+    addMsg('sys', 'Draft below. Check the answers, then Post as Live, Save as draft, or ask for a change.');
   }
+  var POST_RE = /^(please\s+)?(post|publish|go\s+live|make\s+it\s+live|put\s+it\s+(up|live|online))(\s+(it|this|that|the\s+lesson|now))?(\s+(as\s+)?live)?(\s+now)?[.!\s]*$/i;
   function send() {
     var text = $('chat-input').value.trim();
     if (!text) return;
     $('chat-input').value = '';
     addMsg('me', text);
     chat.push({ role: 'user', content: text });
+
+    // "post it" is handled here, without the assistant: the draft in the form goes live.
+    if (POST_RE.test(text)) {
+      if (!draftReady || !$('f-title').value.trim()) {
+        var r0 = 'There is no draft to post yet. Tell me about the video first, or pick a lesson from the list.';
+        addMsg('bot', r0); chat.push({ role: 'assistant', content: r0 }); return;
+      }
+      var waiting0 = addMsg('sys', 'Posting…');
+      save('live', 'draft-status').then(function (s) {
+        waiting0.remove();
+        var r1 = 'Posted. Lesson ' + s.number + ' "' + s.title + '" is live.';
+        addMsg('bot', '', esc(r1) + ' <a href="' + lessonUrl(s.slug) + '" target="_blank" rel="noopener">View it on the site</a>.');
+        chat.push({ role: 'assistant', content: r1 });
+      }).catch(function (err) {
+        waiting0.remove();
+        var r2 = 'I could not post it: ' + ((err && err.message) || err) + ' Fix that and say "post it" again.';
+        addMsg('bot', r2); chat.push({ role: 'assistant', content: r2 });
+      });
+      return;
+    }
+
     var draft = $('f-title').value.trim() ? collect() : null;
-    var payload = { messages: chat, draft: draft, script: $('ai-script').value.trim(),
-      existing: lessons.map(function (l) { return { number: l.number, title: l.title, chapter: l.chapter }; }) };
+    var payload = {
+      messages: chat, draft: draft, script: $('ai-script').value.trim(),
+      existing: lessons.map(function (l) {
+        return { number: l.number, title: l.title, chapter: l.chapter || chapterOf(lessonTopic(l)), syllabus_topic: lessonTopic(l) || null, slug: l.slug };
+      })
+    };
     $('chat-send').disabled = true;
     var waiting = addMsg('sys', 'Thinking… a full draft takes about a minute.');
     sb.functions.invoke('generate-lesson', { body: payload })
@@ -219,7 +523,7 @@
         if (r.data && r.data.error) throw new Error(r.data.error);
         waiting.remove();
         addMsg('bot', r.data.reply);
-        chat.push({ role: 'assistant', content: r.data.reply + (r.data.lesson ? '\n[Draft "' + r.data.lesson.title + '" with ' + r.data.lesson.questions.length + ' questions placed in the form]' : '') });
+        chat.push({ role: 'assistant', content: r.data.reply + (r.data.lesson ? '\n[Draft "' + r.data.lesson.title + '" with ' + r.data.lesson.questions.length + ' questions shown to the author]' : '') });
         if (r.data.lesson) applyDraft(r.data.lesson);
       })
       .catch(function (err) { waiting.remove(); addMsg('sys', 'Something went wrong: ' + ((err && err.message) || err)); chat.pop(); })
@@ -227,46 +531,14 @@
   }
   $('chat-send').addEventListener('click', send);
   $('chat-input').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-  $('chat-reset').addEventListener('click', greet);
-  greet();
-
-  // ---------- save / delete
-  $('lesson-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var row = collect();
-    var qs = row.questions; delete row.questions;
-    if (!row.title) { status('save-status', 'A title is needed.', false); return; }
-    if ($('f-video').value.trim() && !row.video_id) { status('save-status', 'That does not look like a YouTube link.', false); return; }
-    for (var i = 0; i < qs.length; i++) {
-      if (!qs[i].prompt.trim() || isNaN(qs[i].answer)) { status('save-status', 'Question ' + (i + 1) + ' needs a prompt and a numeric answer.', false); return; }
-    }
-    if ($('f-id').value) row.id = $('f-id').value;
-
-    sb.from('lessons').upsert(row, { onConflict: 'slug' }).select('id, slug').single()
-      .then(function (r) {
-        if (r.error) throw r.error;
-        var id = r.data.id;
-        return sb.from('questions').delete().eq('lesson_id', id).then(function (d) {
-          if (d.error) throw d.error;
-          if (!qs.length) return { data: [] };
-          return sb.from('questions').insert(qs.map(function (q) { q.lesson_id = id; return q; }));
-        }).then(function (ins) {
-          if (ins.error) throw ins.error;
-          status('save-status', 'Saved. ' + (row.status === 'live' ? 'The lesson is live.' : 'Status: ' + row.status + '.'), true);
-          current = { id: id, slug: r.data.slug };
-          return loadLessons();
-        });
-      })
-      .catch(function (err) { status('save-status', 'Save failed: ' + (err.message || err), false); });
-  });
-
-  $('delete-lesson').addEventListener('click', function () {
-    if (!current || !current.id) return;
-    if (!confirm('Delete "' + ($('f-title').value || 'this lesson') + '" and its questions? This cannot be undone.')) return;
-    sb.from('lessons').delete().eq('id', current.id).then(function (r) {
-      if (r.error) { status('save-status', 'Delete failed: ' + r.error.message, false); return; }
-      current = null;
-      loadLessons();
+  $('chat-reset').addEventListener('click', function () { greet(); $('chat-input').focus(); });
+  $('chips').querySelectorAll('[data-say]').forEach(function (c) {
+    c.addEventListener('click', function () {
+      var box = $('chat-input'), say = c.getAttribute('data-say');
+      box.value = box.value.trim() ? box.value.replace(/\s*$/, ' ') + say : say;
+      box.focus();
+      box.selectionStart = box.selectionEnd = box.value.length;
     });
   });
+  greet();
 })();
