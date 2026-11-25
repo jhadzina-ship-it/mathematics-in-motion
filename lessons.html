@@ -110,7 +110,7 @@
           var items = chapters[k].items.sort(function (a, b) { return MIM.numKey(a.number) - MIM.numKey(b.number); });
           var done = items.filter(function (l) { return l.status === 'live' && MIM.lessonDone(l); }).length;
           return '<section><div class="wrap"><div class="section-title"><h2>' + esc(k) + '</h2><span class="muted small">' + items.length + ' lesson' + (items.length === 1 ? '' : 's') + (done ? ' · ' + done + ' completed' : '') + '</span></div><div class="grid grid-4">' + items.map(function (l) { return MIM.lessonCard(l, list); }).join('') + '</div></div></section>';
-        }).join('') || '<section><div class="wrap"><p class="muted">No lessons match.</p></div></section>';
+        }).join('') || '<section><div class="wrap"><p class="muted">' + (list.length ? 'No lessons match this filter.' : 'No lessons have been posted yet. The first topics are on their way.') + '</p></div></section>';
       }
       render();
     });
