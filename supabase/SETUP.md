@@ -1,27 +1,26 @@
 # Connecting the site to Supabase
 
-Takes about 15 minutes. Costs nothing: everything below is on Supabase's free plan. Until this is done the site shows the lessons bundled in `content/lessons.js`, so nothing is broken in the meantime.
+About 20 minutes, all on Supabase's free plan. Until this is done the site shows the lessons bundled in `content/lessons.js`, and the Help chat, marking and Tests say they are not connected.
 
 ## 1. Create the project
 
-1. Go to https://supabase.com and sign in (GitHub sign-in is fine). Jephias should own this account, since he owns the content.
-2. **New project**. Name it `mathematics-in-motion`, choose a strong database password (store it in a password manager; the site never needs it), pick the region closest to most students, and create it. Wait a minute for it to start.
+1. Go to https://supabase.com and sign in. Jephias should own this account, since he owns the content.
+2. **New project**. Name it `mathematics-in-motion`, set a strong database password (keep it in a password manager; the site never needs it), pick the region closest to most students, and create it.
 
 ## 2. Create the tables
 
-1. In the left bar open **SQL Editor** → **New query**.
-2. Paste the whole of `supabase/schema.sql` and click **Run**. It creates the `lessons` and `questions` tables, the security rules, and a public `figures` bucket for diagrams.
-3. New query again. Paste `supabase/seed.sql` and **Run**. This loads the starting lessons (Angle of elevation, Alternate segment theorem and the planned ones).
+1. **SQL Editor** → **New query**. Paste the whole of `supabase/schema.sql` and **Run**. It creates the `lessons` and `questions` tables, the row-level security rules, and a public `figures` bucket for diagrams.
+2. New query. Paste `supabase/seed.sql` and **Run**. This loads the starting lessons (regenerate it with `python -I tools/build.py .` after editing `content/lessons.json`).
 
 ## 3. Create the one author account and close sign-ups
 
-1. **Authentication** → **Users** → **Add user** → **Create new user**. Enter Jephias's email and a password, tick **Auto confirm user**. This is the account that signs in on the site's Admin page.
-2. **Authentication** → **Sign In / Providers** → **Email**: leave Email enabled, but turn **off** "Allow new users to sign up". Save. Now nobody else can create an account.
+1. **Authentication** → **Users** → **Add user** → **Create new user**. Enter the author's email and a password, tick **Auto confirm user**. This account signs in on `admin.html`.
+2. **Authentication** → **Sign In / Providers** → **Email**: leave Email on, turn **off** "Allow new users to sign up". Save.
 
 ## 4. Tell the site where the project is
 
-1. **Project Settings** (gear icon) → **API Keys**. Copy the **publishable** key (starts with `sb_publishable_`). The Project URL is on the project home page, `https://<ref>.supabase.co`. Never use the **secret** key in the site.
-2. Open `assets/config.js` in the site and paste them in:
+1. **Project Settings** → **API Keys**. Copy the **publishable** key (`sb_publishable_...`). The Project URL is on the project home page, `https://<ref>.supabase.co`. Never put the **secret** key in the site.
+2. Paste both into `assets/config.js`:
 
 ```js
 window.MIM_CONFIG = {
@@ -30,35 +29,42 @@ window.MIM_CONFIG = {
 };
 ```
 
-3. Commit the change. The publishable key is designed to be public: the row-level security rules in `schema.sql` are what decide that visitors can only read, and only the signed-in author can write.
+3. Commit. The publishable key is meant to be public; the security rules in `schema.sql` make visitors read-only and let only the signed-in author write.
 
-## 5. Try it
+## 5. Deploy the two Edge Functions
 
-Open `admin.html` on the site, sign in with the author account, and change something small, such as a lesson's summary. Reload the lesson page: the change is live. No commit needed.
+Both call the Claude API with a key kept in the function's secrets, so it never reaches the browser.
 
-## 6. Generate lessons with AI (optional)
+| Function | Source | Who may call it |
+| --- | --- | --- |
+| `generate-lesson` | `supabase/functions/generate-lesson/index.ts` | the signed-in author only (drafts a lesson from a video link) |
+| `student-assist` | `supabase/functions/student-assist/index.ts` | anyone on the site, rate-limited per IP: Help chat, marking of working or a photo, topic tests and their reports |
 
-The admin page has a "Generate with AI" panel: paste a YouTube link, say what you want, and a complete draft lesson fills the form for review. It runs through an Edge Function in this project, so the Anthropic key never reaches the browser and only the signed-in author can call it.
+1. Get an API key from the Claude Console (https://platform.claude.com) under API Keys. It is billed per use; a generated lesson or a marked test costs a few cents.
+2. **Edge Functions** → **Secrets** → add `ANTHROPIC_API_KEY` with that key. One secret serves both functions.
+3. **Edge Functions** → **Deploy a new function** → **Via Editor**. Name it `generate-lesson`, paste the contents of its `index.ts`, deploy. Repeat for `student-assist`.
 
-1. **Edge Functions** → **Deploy a new function** → **Via Editor**. Name it `generate-lesson`, paste the contents of `supabase/functions/generate-lesson/index.ts`, and deploy.
-2. Get an API key from the Claude Console (https://platform.claude.com) under API Keys. It is billed per use, roughly five to ten US cents per generated lesson.
-3. **Edge Functions** → **Secrets** → add `ANTHROPIC_API_KEY` with that key. Never put it in the site's files.
-4. On the admin page, sign in, paste a video link and a request, and click **Generate draft**. Check every answer before saving; the model recomputes each one but the author is the last check.
+To change the tone or the marking style, edit the system prompts in the respective `index.ts` and redeploy.
 
-To change how lessons are written (tone, number of questions, difficulty curve), edit the `SYSTEM` text in `index.ts` and redeploy. The model is `claude-opus-5-5` with adaptive thinking and a structured output schema that matches the lessons table, so the result always fits the form.
+## 6. Try it
+
+- Open `admin.html`, sign in, change a lesson summary. Reload the lesson: the change is live. Try **Generate draft** with a video link.
+- Open a lesson as a student, answer a question with some working and submit it for marking. Open the Help button and ask how the site works. Open `test.html` and take a topic test.
 
 ## What lives where
 
 | Thing | Where | Who changes it |
 | --- | --- | --- |
-| Lessons, questions, video ids | Supabase tables | Jephias, through the Admin page |
-| Diagrams Jephias uploads | Supabase `figures` bucket | Jephias, through the Admin page |
-| Diagrams generated for the first lessons | `assets/figures/` in the repo | the developer |
-| Page layout, styles, this guide | the GitHub repo | the developer |
-| Fallback copy of the lessons | `content/lessons.js` | regenerated from `content/lessons.json` by the developer |
+| Lessons, questions, video ids | Supabase tables | Jephias, through `admin.html` |
+| Diagrams Jephias uploads | Supabase `figures` bucket | Jephias, through `admin.html` |
+| Generated diagrams for the first lessons | `assets/figures/` | the developer, via `tools/build.py` |
+| Syllabus topic list | `content/syllabus-b.json` | the developer |
+| Page layout, styles, Edge Function code, this guide | the GitHub repo | the developer |
+| Fallback copy of the lessons | `content/lessons.js` | regenerated from `content/lessons.json` by `tools/build.py` |
+| Student progress and last test report | the student's browser (localStorage) | the student |
 
 ## Free-plan limits worth knowing
 
-- A free project is **paused after 7 days without any request**. The site's own page views count as requests, so a site that gets visitors stays awake. If it is paused, the dashboard has a one-click Restore, and the site shows the bundled fallback lessons meanwhile.
-- 500 MB database and 1 GB file storage: thousands of lessons' worth. Videos stay on YouTube, not in Supabase.
-- Supabase does not bill the free plan; it stops at the limits instead.
+- A free project is **paused after 7 days without any request**. Page views count, so a visited site stays awake. If paused, the dashboard has a one-click Restore, and the site shows the bundled lessons meanwhile.
+- 500 MB database and 1 GB file storage: thousands of lessons' worth. Videos stay on YouTube.
+- Edge Functions have a generous free invocation quota; the Claude API key is billed separately by Anthropic.

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>About · Mathematics in Motion</title>
-  <meta name="description" content="About Jephias Hadzina and the Mathematics in Motion project.">
+  <meta name="description" content="About Jephias Hadzina and Mathematics in Motion, free animated lessons for ZIMSEC O-Level mathematics.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
@@ -17,8 +17,7 @@
       <a class="brand" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="#f1b434" stroke-width="2.4" stroke-linecap="round"/></svg>Mathematics in Motion</a>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="lessons.html">Lessons</a>
-        <a href="textbooks.html">For teachers</a>
-        <a href="approach.html">How it works</a>
+        <a href="test.html">Tests</a>
         <a href="about.html">About</a>
       </nav>
       <div class="header-right">
@@ -31,24 +30,24 @@
 
   <main>
     <section class="hero" style="padding-bottom:8px">
-      <div class="wrap">
-        <div class="eyebrow">About</div>
-        <h1>Jephias Hadzina</h1>
-        <p class="lead muted">Mathematics teacher and animator. Mathematics in Motion is his project to teach secondary-school mathematics through visualisations, animations and real-world situations.</p>
+      <div class="wrap" style="display:grid;grid-template-columns:1fr auto;gap:28px;align-items:start">
+        <div>
+          <div class="eyebrow">About</div>
+          <h1>Jephias Hadzina</h1>
+          <p class="lead muted">Jephias Hadzina has taught high school mathematics for 10 years. He holds a Diploma in Education from Mutare Teachers' College and a BSc Honours in Mathematics from Bindura University of Science Education (BUSE), and is now studying for an MA in Mathematics at Yeshiva University, New York.</p>
+        </div>
+        <!-- Photo of Jephias: drop the file at assets/img/jephias.jpg. The image hides itself if the file is missing. -->
+        <div class="about-photo-wrap">
+          <img class="about-photo" src="assets/img/jephias.jpg" alt="Jephias Hadzina" width="220" height="220" style="width:220px;max-width:40vw;height:auto;border-radius:12px;object-fit:cover;display:block" onerror="this.style.display='none'">
+        </div>
       </div>
     </section>
 
     <section>
-      <div class="wrap grid grid-2">
+      <div class="wrap">
         <div class="card">
-          <h3>The idea</h3>
-          <!-- Jephias: replace this paragraph with your own words. -->
-          <p class="muted">Most students meet a theorem as a sentence in a textbook and a diagram that never moves. Jephias animates the diagram. When a point slides around a circle and an angle stays the same, the theorem stops being something to memorise and becomes something you have seen happen. The target student is about twelve, strong at mathematics, and bored by it. The aim is to make them excited.</p>
-        </div>
-        <div class="card">
-          <h3>Background</h3>
-          <!-- Jephias: add your teaching background, where you taught and for how long. -->
-          <p class="muted">Jephias taught the Zimbabwe O-Level syllabus (Forms 3 and 4), where the first videos come from. He is now a graduate student at the Katz School of Science and Health, Yeshiva University, New York.</p>
+          <h3>What Mathematics in Motion is</h3>
+          <p class="muted" style="margin:0">Free animated video lessons for the Zimbabwe O-Level, Forms 3 and 4, following ZIMSEC Mathematics Syllabus B. Each lesson shows a result happening on screen, explains it in plain words, and then gives you practice questions whose working is marked with feedback. Finish a lesson's practice and the next lesson in the topic opens. No sign-up, no fee.</p>
         </div>
       </div>
     </section>
@@ -58,8 +57,8 @@
         <h2>The project</h2>
         <div class="grid grid-3" style="margin-top:18px">
           <div class="card"><h3>Content</h3><p class="muted small">Jephias writes, animates and voices every video, and writes the questions and worked solutions.</p></div>
-          <div class="card"><h3>Site</h3><p class="muted small">Built by Kudzai Madembo as a static GitHub Pages site, so it costs nothing to run and the content stays in plain files that Jephias can edit.</p></div>
-          <div class="card"><h3>Advisor</h3><p class="muted small">Developed with guidance from Prof. Andy Catlin, MS in Data Analytics and Visualization, Katz School of Science and Health.</p></div>
+          <div class="card"><h3>Site</h3><p class="muted small">Built by Kudzai Madembo as a free static site, so it costs nothing to run and Jephias can post new lessons himself.</p></div>
+          <div class="card"><h3>Guidance</h3><p class="muted small">Developed with guidance from Prof. Andy Catlin, Yeshiva University.</p></div>
         </div>
       </div>
     </section>
@@ -68,9 +67,8 @@
       <div class="wrap">
         <div class="card">
           <h3>Contact</h3>
-          <!-- Jephias: add the email address or form link you want to be public. -->
-          <p class="muted">For schools, teachers and collaborators: <span class="pill pill-amber">email address to be added by Jephias</span></p>
-          <p class="muted small">YouTube channel and the earlier Google Site: links to be added.</p>
+          <!-- Jephias: add the email address you want to be public. -->
+          <p class="muted" style="margin:0">Questions, corrections or requests for a topic: <span class="pill pill-amber">email to be added</span></p>
         </div>
       </div>
     </section>
@@ -81,19 +79,24 @@
     <div class="wrap">
       <div>
         <h4>Mathematics in Motion</h4>
-        <p>Animated mathematics lessons by Jephias Hadzina. Free, with practice questions checked in your browser.</p>
+        <p>Free animated mathematics lessons for ZIMSEC O-Level, Forms 3 and 4, by Jephias Hadzina. Practice marked as you go.</p>
+        <p class="small" style="margin-top:8px;opacity:.8">Photos: Andrew Moore, Bernard Gagnon, MaRally and Janice Bell, CC BY-SA, via Wikimedia Commons.</p>
       </div>
       <div>
         <h4>Learn</h4>
-        <ul><li><a href="lessons.html">All lessons</a></li><li><a href="approach.html">How it works</a></li><li><a href="textbooks.html">For teachers</a></li></ul>
+        <ul><li><a href="lessons.html">All lessons</a></li><li><a href="test.html">Tests</a></li><li><a href="syllabus.html">Syllabus</a></li></ul>
       </div>
       <div>
         <h4>Project</h4>
-        <ul><li><a href="about.html">About</a></li><li><a href="about.html">Contact</a></li><li><a href="admin.html">Author sign-in</a></li></ul>
+        <ul><li><a href="about.html">About</a></li><li><a href="admin.html">Author sign-in</a></li></ul>
       </div>
     </div>
   </footer>
   <!--/FOOTER-->
+  <script src="assets/config.js"></script>
+  <script src="content/lessons.js"></script>
+  <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
+  <script src="assets/help.js"></script>
 </body>
 </html>

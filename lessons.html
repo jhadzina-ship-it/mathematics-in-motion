@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lessons · Mathematics in Motion</title>
-  <meta name="description" content="The lesson catalogue for Mathematics in Motion, filterable by topic.">
+  <meta name="description" content="All Mathematics in Motion lessons, grouped by ZIMSEC Syllabus B topic and taken in order.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
@@ -17,8 +17,7 @@
       <a class="brand" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="#f1b434" stroke-width="2.4" stroke-linecap="round"/></svg>Mathematics in Motion</a>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="lessons.html">Lessons</a>
-        <a href="textbooks.html">For teachers</a>
-        <a href="approach.html">How it works</a>
+        <a href="test.html">Tests</a>
         <a href="about.html">About</a>
       </nav>
       <div class="header-right">
@@ -33,7 +32,7 @@
     <div class="wrap crumbs"><a href="index.html">Home</a><span class="sep">›</span><span>Lessons</span></div>
     <div class="wrap page-head">
       <h1>All lessons</h1>
-      <p class="lead">One idea per lesson. One video per idea. Lessons marked "coming soon" are scripted and waiting to be animated.</p>
+      <p class="lead">Lessons are grouped by syllabus topic and taken in order: pass the practice of one lesson (80% or more) to open the next in that topic. Lessons marked "coming soon" are written and waiting to be animated.</p>
     </div>
 
     <section style="padding-top:8px">
@@ -47,10 +46,8 @@
 
     <section>
       <div class="wrap">
-        <div class="section-title"><h2>Later topics</h2></div>
-        <p class="muted">Mathematics in Motion is not only geometry. These topic areas follow once the first chapters are complete.</p>
-        <div class="chips">
-          <span class="chip">Geometry &amp; Transformations</span><span class="chip">Algebra &amp; Functions</span><span class="chip">Calculus</span><span class="chip">Statistics &amp; Probability</span><span class="chip">Mathematical Modelling</span>
+        <div class="callout">
+          <strong>More topics are coming.</strong> New lessons are added topic by topic across the syllabus. See <a href="syllabus.html">where each lesson sits in ZIMSEC Syllabus B</a>, Forms 3 and 4.
         </div>
       </div>
     </section>
@@ -61,15 +58,16 @@
     <div class="wrap">
       <div>
         <h4>Mathematics in Motion</h4>
-        <p>Animated mathematics lessons by Jephias Hadzina. Free, with practice questions checked in your browser.</p>
+        <p>Free animated mathematics lessons for ZIMSEC O-Level, Forms 3 and 4, by Jephias Hadzina. Practice marked as you go.</p>
+        <p class="small" style="margin-top:8px;opacity:.8">Photos: Andrew Moore, Bernard Gagnon, MaRally and Janice Bell, CC BY-SA, via Wikimedia Commons.</p>
       </div>
       <div>
         <h4>Learn</h4>
-        <ul><li><a href="lessons.html">All lessons</a></li><li><a href="approach.html">How it works</a></li><li><a href="textbooks.html">For teachers</a></li></ul>
+        <ul><li><a href="lessons.html">All lessons</a></li><li><a href="test.html">Tests</a></li><li><a href="syllabus.html">Syllabus</a></li></ul>
       </div>
       <div>
         <h4>Project</h4>
-        <ul><li><a href="about.html">About</a></li><li><a href="about.html">Contact</a></li><li><a href="admin.html">Author sign-in</a></li></ul>
+        <ul><li><a href="about.html">About</a></li><li><a href="admin.html">Author sign-in</a></li></ul>
       </div>
     </div>
   </footer>
@@ -78,38 +76,39 @@
   <script src="content/lessons.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
+  <script src="assets/help.js"></script>
   <script>
     MIM.loadLessons().then(function (all) {
       var esc = MIM.esc;
       var list = all.filter(function (l) { return l.status !== 'draft'; });
-      var topics = []; list.forEach(function (l) { if (l.topic && topics.indexOf(l.topic) < 0) topics.push(l.topic); });
-      topics.sort();
+      var topicKey = {};
+      var topics = []; list.forEach(function (l) { if (l.topic && topics.indexOf(l.topic) < 0) { topics.push(l.topic); topicKey[l.topic] = l.syllabus_topic || 999; } });
+      topics.sort(function (a, b) { return topicKey[a] - topicKey[b] || a.localeCompare(b); });
       var topic = MIM.param('topic');
       var q = MIM.param('q').toLowerCase();
+      if (q) { var box = document.getElementById('q'); if (box) box.value = MIM.param('q'); }
 
       function render() {
         var shown = list.filter(function (l) {
           if (topic && l.topic !== topic) return false;
-          if (q && (l.title + ' ' + l.summary + ' ' + l.topic + ' ' + l.us_name).toLowerCase().indexOf(q) < 0) return false;
+          if (q && [l.number, l.title, l.summary, l.topic, l.chapter, l.syllabus_subtopic, l.syllabus_form].join(' ').toLowerCase().indexOf(q) < 0) return false;
           return true;
         });
         document.getElementById('filters').innerHTML =
           '<button class="chip' + (topic ? '' : ' active') + '" data-topic="">All topics</button>' +
-          topics.map(function (t) { return '<button class="chip' + (topic === t ? ' active' : '') + '" data-topic="' + esc(t) + '">' + esc(t) + '</button>'; }).join('');
+          topics.map(function (t) { return '<button class="chip' + (topic === t ? ' active' : '') + '" data-topic="' + esc(t) + '">' + (topicKey[t] < 999 ? 'Topic ' + topicKey[t] + ' · ' : '') + esc(t) + '</button>'; }).join('');
         document.getElementById('filters').querySelectorAll('button').forEach(function (b) {
           b.addEventListener('click', function () { topic = b.getAttribute('data-topic'); history.replaceState(null, '', topic ? '?topic=' + encodeURIComponent(topic) : 'lessons.html'); render(); });
         });
         document.getElementById('count').textContent = shown.length + ' lesson' + (shown.length === 1 ? '' : 's') + (q ? ' matching "' + q + '"' : '') + (topic ? ' in ' + topic : '');
 
         var chapters = {}, order = [];
-        shown.forEach(function (l) { var k = l.chapter || l.topic || 'Other'; if (!chapters[k]) { chapters[k] = []; order.push(k); } chapters[k].push(l); });
-        order.sort(function (a, b) {
-          var la = chapters[a].some(function (l) { return l.status === 'live'; }), lb = chapters[b].some(function (l) { return l.status === 'live'; });
-          return la === lb ? a.localeCompare(b) : (la ? -1 : 1);
-        });
+        shown.forEach(function (l) { var k = l.chapter || l.topic || 'Other'; if (!chapters[k]) { chapters[k] = { key: l.syllabus_topic || 999, items: [] }; order.push(k); } chapters[k].items.push(l); });
+        order.sort(function (a, b) { return chapters[a].key - chapters[b].key || a.localeCompare(b); });
         document.getElementById('chapters').innerHTML = order.map(function (k) {
-          var items = chapters[k].sort(function (a, b) { return String(a.number).localeCompare(String(b.number), undefined, { numeric: true }); });
-          return '<section><div class="wrap"><div class="section-title"><h2>' + esc(k) + '</h2><span class="muted small">' + items.length + ' lesson' + (items.length === 1 ? '' : 's') + '</span></div><div class="grid grid-4">' + items.map(MIM.lessonCard).join('') + '</div></div></section>';
+          var items = chapters[k].items.sort(function (a, b) { return MIM.numKey(a.number) - MIM.numKey(b.number); });
+          var done = items.filter(function (l) { return l.status === 'live' && MIM.lessonDone(l); }).length;
+          return '<section><div class="wrap"><div class="section-title"><h2>' + esc(k) + '</h2><span class="muted small">' + items.length + ' lesson' + (items.length === 1 ? '' : 's') + (done ? ' · ' + done + ' completed' : '') + '</span></div><div class="grid grid-4">' + items.map(function (l) { return MIM.lessonCard(l, list); }).join('') + '</div></div></section>';
         }).join('') || '<section><div class="wrap"><p class="muted">No lessons match.</p></div></section>';
       }
       render();

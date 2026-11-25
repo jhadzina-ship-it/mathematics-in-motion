@@ -104,7 +104,8 @@
     var done = live && lessonDone(l);
     var href = 'lesson.html?id=' + encodeURIComponent(l.slug);
     var t = thumb(l);
-    var art = t ? '<img src="' + esc(t) + '" alt="" loading="lazy">' : (/trig/i.test(l.topic || '') ? THUMB_TRIG : THUMB_CIRCLE);
+    var topicPhoto = { 8: 'assets/img/geometry.jpg', 10: 'assets/img/victoria-falls.jpg' }[l.syllabus_topic];
+    var art = t ? '<img src="' + esc(t) + '" alt="" loading="lazy">' : topicPhoto ? '<img src="' + topicPhoto + '" alt="" loading="lazy">' : (/trig/i.test(l.topic || '') ? THUMB_TRIG : THUMB_CIRCLE);
     var meta = [l.syllabus_form || l.level, live && l.duration ? l.duration + ' video' : '', l.questions && l.questions.length ? l.questions.length + ' questions' : ''].filter(Boolean).map(esc).join(' · ');
     var state = done ? '<span class="pill pill-green">Completed</span>' : !live ? statusPill(l.status) : open ? '<span class="pill pill-green">Available now</span>' : '<span class="pill pill-grey">' + LOCK + ' Finish lesson ' + esc((previousLesson(l, all || []) || {}).number || '') + ' first</span>';
     return '<article class="course-card' + (live && open ? '' : ' coming') + '">' +
