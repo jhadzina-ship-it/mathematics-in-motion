@@ -274,9 +274,16 @@
     $('topics-view').classList.toggle('hidden', inChat);
     document.querySelector('.hero').classList.toggle('hidden', inChat);
   }
+  // Bring the newest message into view above the composer; never scroll up, never past the stream.
   function scrollChatToEnd() {
     if (!activeTopic) return;
-    window.requestAnimationFrame(function () { window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); });
+    window.requestAnimationFrame(function () {
+      var last = $('chat-log').lastElementChild; if (!last) return;
+      var comp = document.querySelector('.cv-composer');
+      var bottom = last.getBoundingClientRect().bottom + window.scrollY;
+      var target = bottom - (window.innerHeight - (comp ? comp.offsetHeight : 0) - 24);
+      if (target > window.scrollY + 4) window.scrollTo({ top: target, behavior: 'smooth' });
+    });
   }
   // Open a branch for posting: a new subtopic (lesson null) or an existing one.
   function openTopic(n, lesson) {
