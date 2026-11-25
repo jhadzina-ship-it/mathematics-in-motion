@@ -36,6 +36,17 @@ window.MIM_CONFIG = {
 
 Open `admin.html` on the site, sign in with the author account, and change something small, such as a lesson's summary. Reload the lesson page: the change is live. No commit needed.
 
+## 6. Generate lessons with AI (optional)
+
+The admin page has a "Generate with AI" panel: paste a YouTube link, say what you want, and a complete draft lesson fills the form for review. It runs through an Edge Function in this project, so the Anthropic key never reaches the browser and only the signed-in author can call it.
+
+1. **Edge Functions** → **Deploy a new function** → **Via Editor**. Name it `generate-lesson`, paste the contents of `supabase/functions/generate-lesson/index.ts`, and deploy.
+2. Get an API key from the Claude Console (https://platform.claude.com) under API Keys. It is billed per use, roughly five to ten US cents per generated lesson.
+3. **Edge Functions** → **Secrets** → add `ANTHROPIC_API_KEY` with that key. Never put it in the site's files.
+4. On the admin page, sign in, paste a video link and a request, and click **Generate draft**. Check every answer before saving; the model recomputes each one but the author is the last check.
+
+To change how lessons are written (tone, number of questions, difficulty curve), edit the `SYSTEM` text in `index.ts` and redeploy. The model is `claude-opus-5-5` with adaptive thinking and a structured output schema that matches the lessons table, so the result always fits the form.
+
 ## What lives where
 
 | Thing | Where | Who changes it |
