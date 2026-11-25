@@ -350,7 +350,7 @@
     $('panel-topic').textContent = 'Topic ' + activeTopic + ' · ' + (tp ? tp.name : '');
     $('panel-title').textContent = (l.id ? 'Subtopic ' : 'New subtopic ') + (l.number || '') + (l.title ? ': ' + l.title : '');
     renderTree();
-    if (!quiet) window.scrollTo({ top: $('draft-card').offsetTop - 130, behavior: 'smooth' });
+    if (!quiet) window.scrollTo({ top: 0 });
   }
 
   function clearForm() {
