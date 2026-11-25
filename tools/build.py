@@ -200,7 +200,7 @@ def q(s):
     return "'" + str(s).replace("'", "''") + "'"
 
 LESSON_COLS = ["slug", "number", "title", "topic", "chapter", "status", "video_id", "duration", "level", "hook",
-               "summary", "theorem", "explanation", "figure", "us_name", "textbook_envision", "textbook_bigideas",
+               "summary", "outcomes", "skills", "theorem", "explanation", "figure", "us_name", "textbook_envision", "textbook_bigideas",
                "textbook_hmh", "standard", "textbook_confirmed"]
 lines = ["-- Generated from content/lessons.json by figures.py. Run after schema.sql.",
          "-- Safe to re-run: lessons are upserted by slug and their questions replaced.", "begin;"]

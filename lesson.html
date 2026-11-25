@@ -6,37 +6,33 @@
   <title>Lesson · Mathematics in Motion</title>
   <meta name="description" content="An animated mathematics lesson with practice questions checked in your browser.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+  <!--HEADER-->
   <header class="site-header">
     <div class="wrap">
-      <a class="brand" href="index.html">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="var(--spark)" stroke-width="2.4" stroke-linecap="round"/></svg>
-        Mathematics in Motion
-      </a>
-      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="brand" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="#f1b434" stroke-width="2.4" stroke-linecap="round"/></svg>Mathematics in Motion</a>
       <nav class="nav" id="nav" aria-label="Main">
-        <a href="index.html">Home</a>
         <a href="lessons.html">Lessons</a>
-        <a href="textbooks.html">Textbooks</a>
-        <a href="approach.html">Approach</a>
+        <a href="textbooks.html">For teachers</a>
+        <a href="approach.html">How it works</a>
         <a href="about.html">About</a>
       </nav>
+      <div class="header-right">
+        <form class="search" action="lessons.html" method="get" role="search"><label class="sr-only" for="q">Search lessons</label><input id="q" name="q" type="search" placeholder="What do you want to learn?"><button type="submit" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></form>
+        <a class="btn btn-outline btn-sm" href="admin.html">Author sign-in</a>
+      </div>
     </div>
   </header>
+  <!--/HEADER-->
 
-  <main id="lesson">
-    <section class="hero"><div class="wrap"><p class="muted">Loading lesson…</p></div></section>
+  <main id="lesson" class="player">
+    <div class="stage"><p class="muted">Loading lesson…</p></div>
   </main>
 
-  <footer class="site-footer">
-    <div class="wrap">
-      <span>Mathematics in Motion · Jephias Hadzina</span>
-      <span>Built as a static site on GitHub Pages. <a href="about.html">Contact</a> · <a href="admin.html">Author sign-in</a></span>
-    </div>
-  </footer>
   <script src="assets/config.js"></script>
   <script src="content/lessons.js"></script>
   <script src="assets/data.js"></script>
@@ -44,80 +40,173 @@
   <script>
   (function () {
     var esc = MIM.esc;
-    var slug = MIM.param('id');
     var main = document.getElementById('lesson');
+    var ITEMS = ['video', 'reading', 'practice'];
+    var LABEL = { video: 'Video', reading: 'Reading', practice: 'Practice quiz' };
 
-    function figure(src, alt) {
-      return src ? '<div class="figure"><img src="' + esc(src) + '" alt="' + esc(alt) + '" loading="lazy"></div>' : '';
+    // ---- progress, per browser (a convenience, not an account)
+    function loadProgress() { try { return JSON.parse(localStorage.getItem('mim-progress') || '{}'); } catch (e) { return {}; } }
+    function saveProgress(p) { try { localStorage.setItem('mim-progress', JSON.stringify(p)); } catch (e) {} }
+    var progress = loadProgress();
+    function isDone(slug, item) { return !!(progress[slug] && progress[slug][item]); }
+    function markDone(slug, item) { progress[slug] = progress[slug] || {}; progress[slug][item] = true; saveProgress(progress); }
+
+    // ---- icons
+    var IC = {
+      video: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5z" fill="currentColor" stroke="none"/></svg>',
+      reading: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg>',
+      practice: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 12 2.5 2.5L16 9"/></svg>',
+      done: '<svg class="ic done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m8 12 2.5 2.5L16 9" stroke="#fff"/></svg>',
+      lock: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+      caret: '<svg class="m-caret" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>'
+    };
+
+    function itemsFor(l) {
+      var out = [];
+      out.push({ key: 'video', title: 'Watch: ' + l.title, meta: MIM.hasVideo(l) ? 'Video · ' + (l.duration || '') : 'Video · coming soon' });
+      out.push({ key: 'reading', title: 'Read: the idea', meta: 'Reading · 2 min' });
+      if ((l.questions || []).length) out.push({ key: 'practice', title: 'Practice quiz: ' + l.title, meta: 'Practice quiz · ' + l.questions.length + ' questions' });
+      return out;
+    }
+
+    function href(l, item) { return 'lesson.html?id=' + encodeURIComponent(l.slug) + '&item=' + item; }
+
+    // ---- sidebar
+    function outline(current, item, chapterLessons, chapterName) {
+      var total = 0, done = 0;
+      chapterLessons.forEach(function (l) { if (l.status === 'live') itemsFor(l).forEach(function (it) { total++; if (isDone(l.slug, it.key)) done++; }); });
+      var pct = total ? Math.round(done / total * 100) : 0;
+      var html = '<aside class="outline" id="outline">' +
+        '<div class="outline-head"><div class="eyebrow">Course material</div><h2>' + esc(chapterName) + '</h2>' +
+        '<div class="progress"><span style="width:' + pct + '%"></span></div><span class="small muted">' + done + ' of ' + total + ' items completed</span></div>';
+      chapterLessons.forEach(function (l) {
+        var live = l.status === 'live';
+        var open = l.slug === current.slug;
+        html += '<details class="module-group' + (live ? '' : ' locked') + '"' + (open ? ' open' : '') + '><summary>' + (live ? '' : IC.lock) +
+          '<span>Lesson ' + esc(l.number) + ': ' + esc(l.title) + '<span class="m-sub">' + (live ? itemsFor(l).length + ' items' : 'Coming soon') + '</span></span>' + (live ? IC.caret : '') + '</summary>';
+        if (live) {
+          itemsFor(l).forEach(function (it) {
+            var cur = open && it.key === item;
+            html += '<a class="item' + (cur ? ' current' : '') + '" href="' + href(l, it.key) + '">' + (isDone(l.slug, it.key) ? IC.done : IC[it.key]) +
+              '<span>' + esc(it.title) + '<span class="meta">' + esc(it.meta) + '</span></span></a>';
+          });
+        }
+        html += '</details>';
+      });
+      html += '</aside>';
+      return html;
+    }
+
+    // ---- stage views
+    function figure(src, alt) { return src ? '<div class="figure"><img src="' + esc(src) + '" alt="' + esc(alt) + '" loading="lazy"></div>' : ''; }
+
+    function videoView(l) {
+      var has = MIM.hasVideo(l);
+      return '<div class="video-frame" data-video-id="' + esc(l.video_id || '') + '" data-video-title="' + esc(l.title) + '"><div class="video-placeholder"><div><div class="play"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#fff"/></svg></div><strong>' + esc(l.title) + '</strong>' + (has ? '' : '<p class="small" style="opacity:.8;margin:.4em 0 0">The video for this lesson has not been linked yet.</p>') + '</div></div></div>' +
+        (l.hook ? '<p style="margin-top:18px;font-size:1.05rem">' + esc(l.hook) + '</p>' : '') +
+        (has ? '<p class="muted small">Watch on <a href="https://www.youtube.com/watch?v=' + esc(l.video_id) + '" target="_blank" rel="noopener">YouTube</a> if the player does not load. Captions are available in the player.</p>' : '');
+    }
+
+    function readingView(l) {
+      var outcomes = MIM.lines(l.outcomes), skills = MIM.csv(l.skills);
+      return '<div class="reading">' +
+        (outcomes.length ? '<div class="info-box" style="margin:0 0 20px"><h3>In this lesson you learn</h3><ul class="outcomes">' + outcomes.map(function (o) { return '<li>' + esc(o) + '</li>'; }).join('') + '</ul></div>' : '') +
+        (l.theorem ? '<blockquote>' + esc(l.theorem) + '</blockquote>' : '') +
+        '<div class="idea"><div>' + (l.explanation ? '<p>' + esc(l.explanation) + '</p>' : '<p class="muted">Not written yet.</p>') + '</div>' + figure(l.figure, 'Figure for ' + l.title) + '</div>' +
+        (skills.length ? '<div class="info-box"><h3>Skills you\'ll gain</h3><div class="chips">' + skills.map(function (s) { return '<span class="chip">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
+        '<div class="info-box"><h3>Where this fits your textbook</h3>' +
+        (l.us_name ? '<p class="small" style="margin:0 0 8px">US textbooks call this result: <strong>' + esc(l.us_name) + '</strong>' + (l.standard ? ' · Common Core ' + esc(l.standard) : '') + '.</p>' : '') +
+        '<div class="table-scroll"><table class="small"><thead><tr><th>enVision Geometry</th><th>Big Ideas Math Geometry</th><th>HMH Into Geometry</th></tr></thead><tbody><tr><td>' + esc(l.textbook_envision) + '</td><td>' + esc(l.textbook_bigideas) + '</td><td>' + esc(l.textbook_hmh) + '</td></tr></tbody></table></div>' +
+        (l.textbook_confirmed ? '' : '<p class="muted small" style="margin:8px 0 0">Chapter-level placement until checked against a physical copy. <a href="textbooks.html">Full table</a>.</p>') +
+        '</div></div>';
     }
 
     function question(q, i) {
       var id = 'q' + (i + 1);
-      var label = q.unit === '°' ? '°' : (q.unit ? ' ' + esc(q.unit) : '');
+      var unit = q.unit === '°' ? '°' : (q.unit ? ' ' + esc(q.unit) : '');
       return '<div class="question" data-answer="' + esc(q.answer) + '" data-tolerance="' + esc(q.tolerance == null ? 0.01 : q.tolerance) + '" data-hint="' + esc(q.hint) + '">' +
-        '<div class="question-grid"><div>' +
-        '<span class="pill">Question ' + (i + 1) + '</span>' +
-        '<p style="margin-top:.8em">' + esc(q.prompt) + '</p>' +
-        '<div class="answer-row"><label class="sr-only" for="' + id + '">Your answer</label><input id="' + id + '" inputmode="decimal" placeholder="?">' + label +
-        '<button class="btn btn-primary" type="button">Check</button></div>' +
+        '<span class="points">1 point</span><div class="eyebrow">Question ' + (i + 1) + '</div>' +
+        '<div class="question-grid"><div><p>' + esc(q.prompt) + '</p>' +
+        '<div class="answer-row"><label class="sr-only" for="' + id + '">Your answer</label><input id="' + id + '" inputmode="decimal" placeholder="?">' + unit +
+        '<button class="btn btn-primary btn-sm" type="button">Check</button></div>' +
         '<div class="feedback" role="status"></div>' +
-        (q.solution ? '<details><summary>Worked solution</summary><p>' + esc(q.solution) + '</p></details>' : '') +
+        (q.solution ? '<details class="solution"><summary>Worked solution</summary><p>' + esc(q.solution) + '</p></details>' : '') +
         '</div>' + figure(q.figure, 'Figure for question ' + (i + 1)) + '</div></div>';
     }
 
-    function render(l) {
-      document.title = l.number + ' · ' + l.title + ' · Mathematics in Motion';
-      var hasVideo = /^[A-Za-z0-9_-]{11}$/.test(l.video_id || '');
-      var html =
-        '<section class="hero" style="padding-bottom:16px"><div class="wrap">' +
-        '<div class="eyebrow">' + esc(l.topic) + ' · Lesson ' + esc(l.number) + (l.level ? ' · ' + esc(l.level) : '') + '</div>' +
-        '<h1>' + esc(l.title) + '</h1>' +
-        (l.hook ? '<p class="lead muted">' + esc(l.hook) + '</p>' : '') +
-        '</div></section>' +
+    function practiceView(l) {
+      var n = l.questions.length;
+      return '<div class="quiz-head"><span class="muted small">' + n + ' questions · about ' + Math.round(n * 2.5) + ' min · Type a number and press Check. A hint appears after a miss, the worked solution after two.</span></div>' +
+        l.questions.map(question).join('') +
+        '<div class="grade" data-score><div class="pct"><span data-score-correct>0</span>/' + n + '</div><div><strong>Your grade</strong><div class="muted" data-score-message>Answer every question to see your grade.</div></div><button class="btn btn-ghost btn-sm" type="button" id="retry" style="margin-left:auto">Try again</button></div>' +
+        '<p class="muted small" style="margin:10px 0 0">Scores stay in this browser only. Saved progress and a teacher view are on the <a href="approach.html">roadmap</a>.</p>';
+    }
 
-        '<section style="padding-top:0"><div class="wrap">' +
-        '<div class="video-frame" data-video-id="' + esc(l.video_id || '') + '" data-video-title="' + esc(l.title) + '">' +
-        '<div class="video-placeholder"><div><div class="play"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#111"/></svg></div>' +
-        '<strong>Video: ' + esc(l.title) + (l.duration ? ' (' + esc(l.duration) + ')' : '') + '</strong>' +
-        (hasVideo ? '' : '<p class="small" style="opacity:.8;margin:.4em 0 0">The video for this lesson has not been linked yet.</p>') +
-        '</div></div></div>' +
-        (hasVideo ? '<p class="muted small" style="margin-top:10px">Watch on <a href="https://www.youtube.com/watch?v=' + esc(l.video_id) + '" target="_blank" rel="noopener">YouTube</a> if the player does not load.</p>' : '') +
-        '</div></section>';
+    // ---- page
+    function render(l, all) {
+      var item = MIM.param('item');
+      var items = itemsFor(l);
+      if (!items.some(function (it) { return it.key === item; })) item = items[0].key;
+      var idx = items.map(function (it) { return it.key; }).indexOf(item);
+      var it = items[idx];
+      var chapterName = l.chapter || l.topic || 'Lessons';
+      var chapterLessons = all.filter(function (x) { return (x.chapter || x.topic) === (l.chapter || l.topic) && x.status !== 'draft'; })
+        .sort(function (a, b) { return String(a.number).localeCompare(String(b.number), undefined, { numeric: true }); });
+      document.title = it.title + ' · ' + l.title + ' · Mathematics in Motion';
 
-      if (l.theorem || l.explanation) {
-        html += '<section><div class="wrap"><div class="theorem"><div>' +
-          '<div class="eyebrow">The idea</div>' +
-          (l.theorem ? '<blockquote>' + esc(l.theorem) + '</blockquote>' : '') +
-          (l.explanation ? '<p class="muted small" style="margin-top:12px">' + esc(l.explanation) + '</p>' : '') +
-          '</div>' + figure(l.figure, 'Figure for ' + l.title) + '</div></div></section>';
+      var prev = idx > 0 ? href(l, items[idx - 1].key) : '';
+      var next = idx < items.length - 1 ? href(l, items[idx + 1].key) : '';
+      if (!next) {
+        var liveAfter = chapterLessons.filter(function (x) { return x.status === 'live' && String(x.number).localeCompare(String(l.number), undefined, { numeric: true }) > 0; })[0];
+        if (liveAfter) next = href(liveAfter, 'video');
       }
+      var done = isDone(l.slug, item);
 
-      if (l.questions && l.questions.length) {
-        html += '<section id="practice"><div class="wrap">' +
-          '<div class="section-head"><h2>Practice</h2><p class="muted">Type your answer and press Check. A hint appears after a miss, and the worked solution opens after two.</p></div>' +
-          l.questions.map(question).join('') +
-          '<div class="score" data-score><div><strong><span data-score-correct>0</span> / <span data-score-total>' + l.questions.length + '</span></strong> correct</div>' +
-          '<div data-score-message>Answer every question to finish the lesson.</div></div>' +
-          '<p class="muted small" style="margin-top:12px">Scores stay in your browser for this visit only. Saved progress and a teacher view are on the <a href="approach.html">roadmap</a>.</p>' +
-          '</div></section>';
-      }
-
-      html += '<section><div class="wrap grid grid-2">' +
-        '<div class="card"><h3>Where this sits in the textbook</h3><p class="muted">' +
-        (l.us_name ? 'US textbooks call this: <em>' + esc(l.us_name) + '</em>. ' : '') +
-        'See the <a href="textbooks.html">textbook alignment</a> for chapter and section.</p></div>' +
-        '<div class="card"><h3>More lessons</h3><p class="muted">Back to the <a href="lessons.html">lesson library</a>.</p></div>' +
-        '</div></section>';
-
+      var body = item === 'video' ? videoView(l) : item === 'reading' ? readingView(l) : practiceView(l);
+      var html = outline(l, item, chapterLessons, chapterName) +
+        '<div class="stage">' +
+        '<button class="btn btn-ghost btn-sm outline-toggle" type="button" id="outline-toggle">☰ Course material</button>' +
+        '<div class="crumbs" style="padding:0 0 8px"><a href="lessons.html">Lessons</a><span class="sep">›</span><a href="lessons.html?topic=' + encodeURIComponent(l.topic || '') + '">' + esc(l.topic) + '</a><span class="sep">›</span><span>Lesson ' + esc(l.number) + '</span></div>' +
+        '<div class="stage-head"><div class="eyebrow">' + esc(LABEL[item]) + (it.meta.indexOf('·') > 0 ? ' · ' + esc(it.meta.split('·').slice(1).join('·').trim()) : '') + '</div><h1>' + esc(it.title) + '</h1>' +
+        '<div class="instructor" style="margin:6px 0 0"><span class="avatar">JH</span><span class="small"><strong>Jephias Hadzina</strong> · Mathematics in Motion</span></div></div>' +
+        body +
+        '<div class="stage-nav">' +
+        '<div>' + (prev ? '<a class="btn btn-ghost" href="' + prev + '">← Previous</a>' : '') + '</div>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+        (item !== 'practice' ? '<button class="btn ' + (done ? 'btn-ghost' : 'btn-primary') + '" type="button" id="complete">' + (done ? '✓ Completed' : 'Mark as completed') + '</button>' : '') +
+        (next ? '<a class="btn ' + (item === 'practice' || done ? 'btn-primary' : 'btn-outline') + '" href="' + next + '">Next →</a>' : '<a class="btn btn-outline" href="lessons.html">Back to lessons</a>') +
+        '</div></div></div>';
       main.innerHTML = html;
+
       MIM_mountVideos();
-      MIM_mountQuestions();
+      if (item === 'practice') {
+        MIM_mountQuestions(function (correct, total, answeredCount) {
+          var g = document.querySelector('[data-score]');
+          var msg = g.querySelector('[data-score-message]');
+          if (answeredCount < total) { msg.textContent = answeredCount + ' of ' + total + ' answered. Answer every question to see your grade.'; return; }
+          var pct = Math.round(correct / total * 100);
+          g.classList.toggle('pass', pct >= 80);
+          msg.textContent = pct + '%. ' + (pct === 100 ? 'Perfect. Lesson complete.' : pct >= 80 ? 'Passed (80% or higher). Open the worked solutions for the ones you missed.' : 'Below 80%. Watch the video again, read the solutions, then try again.');
+          if (pct >= 80 && !isDone(l.slug, 'practice')) {
+            markDone(l.slug, 'practice');
+            document.getElementById('outline').outerHTML = outline(l, item, chapterLessons, chapterName);
+            document.getElementById('outline-toggle').onclick = function () { document.getElementById('outline').classList.toggle('open'); };
+          }
+        });
+        document.getElementById('retry').addEventListener('click', function () { render(l, all); });
+      }
+      var c = document.getElementById('complete');
+      if (c) c.addEventListener('click', function () { markDone(l.slug, item); if (next) location.href = next; else render(l, all); });
+      var t = document.getElementById('outline-toggle');
+      t.addEventListener('click', function () { document.getElementById('outline').classList.toggle('open'); });
+      window.scrollTo(0, 0);
     }
 
     MIM.loadLessons().then(function (list) {
+      var slug = MIM.param('id');
       var l = list.filter(function (x) { return x.slug === slug; })[0] || list.filter(function (x) { return x.status === 'live'; })[0];
-      if (!l) { main.innerHTML = '<section><div class="wrap"><h1>No lesson found</h1><p><a href="lessons.html">Back to lessons</a></p></div></section>'; return; }
-      render(l);
+      if (!l) { main.innerHTML = '<div class="stage"><h1>No lesson found</h1><p><a href="lessons.html">Back to lessons</a></p></div>'; return; }
+      render(l, list);
     });
   })();
   </script>

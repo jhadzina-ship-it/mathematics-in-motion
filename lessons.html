@@ -4,35 +4,42 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lessons · Mathematics in Motion</title>
-  <meta name="description" content="The lesson library for Mathematics in Motion, organised by chapter and topic.">
+  <meta name="description" content="The lesson catalogue for Mathematics in Motion, filterable by topic.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+  <!--HEADER-->
   <header class="site-header">
     <div class="wrap">
-      <a class="brand" href="index.html">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="var(--spark)" stroke-width="2.4" stroke-linecap="round"/></svg>
-        Mathematics in Motion
-      </a>
-      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="brand" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="#f1b434" stroke-width="2.4" stroke-linecap="round"/></svg>Mathematics in Motion</a>
       <nav class="nav" id="nav" aria-label="Main">
-        <a href="index.html">Home</a>
         <a href="lessons.html">Lessons</a>
-        <a href="textbooks.html">Textbooks</a>
-        <a href="approach.html">Approach</a>
+        <a href="textbooks.html">For teachers</a>
+        <a href="approach.html">How it works</a>
         <a href="about.html">About</a>
       </nav>
+      <div class="header-right">
+        <form class="search" action="lessons.html" method="get" role="search"><label class="sr-only" for="q">Search lessons</label><input id="q" name="q" type="search" placeholder="What do you want to learn?"><button type="submit" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></form>
+        <a class="btn btn-outline btn-sm" href="admin.html">Author sign-in</a>
+      </div>
     </div>
   </header>
+  <!--/HEADER-->
 
   <main>
-    <section class="hero" style="padding-bottom:8px">
+    <div class="wrap crumbs"><a href="index.html">Home</a><span class="sep">›</span><span>Lessons</span></div>
+    <div class="wrap page-head">
+      <h1>All lessons</h1>
+      <p class="lead">One idea per lesson. One video per idea. Lessons marked "coming soon" are scripted and waiting to be animated.</p>
+    </div>
+
+    <section style="padding-top:8px">
       <div class="wrap">
-        <div class="eyebrow">Lesson library</div>
-        <h1>Lessons</h1>
-        <p class="lead muted">One idea per lesson. One video per idea. Lessons marked "planned" are scripted and waiting to be animated.</p>
+        <div class="chips" id="filters"></div>
+        <p class="muted small" id="count" style="margin:14px 0 0"></p>
       </div>
     </section>
 
@@ -40,49 +47,72 @@
 
     <section>
       <div class="wrap">
-        <h2>Later topics</h2>
+        <div class="section-title"><h2>Later topics</h2></div>
         <p class="muted">Mathematics in Motion is not only geometry. These topic areas follow once the first chapters are complete.</p>
-        <div class="grid grid-3" style="margin-top:18px">
-          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Geometry &amp; Transformations</h3><p class="muted small">Reflections, rotations, enlargements and similar triangles.</p></div>
-          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Algebra &amp; Functions</h3><p class="muted small">Graphs that move as the equation changes.</p></div>
-          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Calculus</h3><p class="muted small">Gradients, rates of change and areas, starting from motion.</p></div>
-          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Statistics &amp; Probability</h3><p class="muted small">Simulations you can watch converge.</p></div>
-          <div class="card"><span class="pill pill-grey">Planned</span><h3 style="margin-top:.6em">Mathematical Modelling</h3><p class="muted small">Real-world situations, from Victoria Falls to a car accelerating.</p></div>
+        <div class="chips">
+          <span class="chip">Geometry &amp; Transformations</span><span class="chip">Algebra &amp; Functions</span><span class="chip">Calculus</span><span class="chip">Statistics &amp; Probability</span><span class="chip">Mathematical Modelling</span>
         </div>
       </div>
     </section>
   </main>
 
+  <!--FOOTER-->
   <footer class="site-footer">
     <div class="wrap">
-      <span>Mathematics in Motion · Jephias Hadzina</span>
-      <span>Built as a static site on GitHub Pages. <a href="about.html">Contact</a> · <a href="admin.html">Author sign-in</a></span>
+      <div>
+        <h4>Mathematics in Motion</h4>
+        <p>Animated mathematics lessons by Jephias Hadzina. Free, with practice questions checked in your browser.</p>
+      </div>
+      <div>
+        <h4>Learn</h4>
+        <ul><li><a href="lessons.html">All lessons</a></li><li><a href="approach.html">How it works</a></li><li><a href="textbooks.html">For teachers</a></li></ul>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <ul><li><a href="about.html">About</a></li><li><a href="about.html">Contact</a></li><li><a href="admin.html">Author sign-in</a></li></ul>
+      </div>
     </div>
   </footer>
+  <!--/FOOTER-->
   <script src="assets/config.js"></script>
   <script src="content/lessons.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
   <script>
-    MIM.loadLessons().then(function (list) {
-      var chapters = {};
-      var order = [];
-      list.forEach(function (l) {
-        if (l.status === 'draft') return;
-        var key = l.chapter || l.topic || 'Other';
-        if (!chapters[key]) { chapters[key] = []; order.push(key); }
-        chapters[key].push(l);
-      });
-      // Chapters with a live lesson first, then by chapter name.
-      order.sort(function (a, b) {
-        var la = chapters[a].some(function (l) { return l.status === 'live'; }), lb = chapters[b].some(function (l) { return l.status === 'live'; });
-        return la === lb ? a.localeCompare(b) : (la ? -1 : 1);
-      });
-      document.getElementById('chapters').innerHTML = order.map(function (key) {
-        var items = chapters[key].sort(function (a, b) { return String(a.number).localeCompare(String(b.number), undefined, { numeric: true }); });
-        return '<section><div class="wrap"><h2>' + MIM.esc(key) + '</h2><div class="grid" style="margin-top:18px">' +
-          items.map(MIM.lessonCard).join('') + '</div></div></section>';
-      }).join('') || '<section><div class="wrap"><p class="muted">No lessons yet.</p></div></section>';
+    MIM.loadLessons().then(function (all) {
+      var esc = MIM.esc;
+      var list = all.filter(function (l) { return l.status !== 'draft'; });
+      var topics = []; list.forEach(function (l) { if (l.topic && topics.indexOf(l.topic) < 0) topics.push(l.topic); });
+      topics.sort();
+      var topic = MIM.param('topic');
+      var q = MIM.param('q').toLowerCase();
+
+      function render() {
+        var shown = list.filter(function (l) {
+          if (topic && l.topic !== topic) return false;
+          if (q && (l.title + ' ' + l.summary + ' ' + l.topic + ' ' + l.us_name).toLowerCase().indexOf(q) < 0) return false;
+          return true;
+        });
+        document.getElementById('filters').innerHTML =
+          '<button class="chip' + (topic ? '' : ' active') + '" data-topic="">All topics</button>' +
+          topics.map(function (t) { return '<button class="chip' + (topic === t ? ' active' : '') + '" data-topic="' + esc(t) + '">' + esc(t) + '</button>'; }).join('');
+        document.getElementById('filters').querySelectorAll('button').forEach(function (b) {
+          b.addEventListener('click', function () { topic = b.getAttribute('data-topic'); history.replaceState(null, '', topic ? '?topic=' + encodeURIComponent(topic) : 'lessons.html'); render(); });
+        });
+        document.getElementById('count').textContent = shown.length + ' lesson' + (shown.length === 1 ? '' : 's') + (q ? ' matching "' + q + '"' : '') + (topic ? ' in ' + topic : '');
+
+        var chapters = {}, order = [];
+        shown.forEach(function (l) { var k = l.chapter || l.topic || 'Other'; if (!chapters[k]) { chapters[k] = []; order.push(k); } chapters[k].push(l); });
+        order.sort(function (a, b) {
+          var la = chapters[a].some(function (l) { return l.status === 'live'; }), lb = chapters[b].some(function (l) { return l.status === 'live'; });
+          return la === lb ? a.localeCompare(b) : (la ? -1 : 1);
+        });
+        document.getElementById('chapters').innerHTML = order.map(function (k) {
+          var items = chapters[k].sort(function (a, b) { return String(a.number).localeCompare(String(b.number), undefined, { numeric: true }); });
+          return '<section><div class="wrap"><div class="section-title"><h2>' + esc(k) + '</h2><span class="muted small">' + items.length + ' lesson' + (items.length === 1 ? '' : 's') + '</span></div><div class="grid grid-4">' + items.map(MIM.lessonCard).join('') + '</div></div></section>';
+        }).join('') || '<section><div class="wrap"><p class="muted">No lessons match.</p></div></section>';
+      }
+      render();
     });
   </script>
 </body>

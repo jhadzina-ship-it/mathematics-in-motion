@@ -91,7 +91,7 @@
 
   // ---------- form
   var FIELDS = { number: 'f-number', status: 'f-status', level: 'f-level', title: 'f-title', slug: 'f-slug', topic: 'f-topic',
-    chapter: 'f-chapter', duration: 'f-duration', hook: 'f-hook', summary: 'f-summary', theorem: 'f-theorem',
+    chapter: 'f-chapter', duration: 'f-duration', hook: 'f-hook', summary: 'f-summary', outcomes: 'f-outcomes', skills: 'f-skills', theorem: 'f-theorem',
     explanation: 'f-explanation', figure: 'f-figure', us_name: 'f-us-name', textbook_envision: 'f-tb-envision',
     textbook_bigideas: 'f-tb-bigideas', textbook_hmh: 'f-tb-hmh', standard: 'f-standard' };
 

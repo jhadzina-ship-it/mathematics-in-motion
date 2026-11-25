@@ -18,6 +18,8 @@ create table if not exists public.lessons (
   level              text not null default '',
   hook               text not null default '',
   summary            text not null default '',
+  outcomes           text not null default '',   -- "What you'll learn", one line per point
+  skills             text not null default '',   -- "Skills you'll gain", comma-separated
   theorem            text not null default '',
   explanation        text not null default '',
   figure             text not null default '',   -- image url or site-relative path
@@ -30,6 +32,10 @@ create table if not exists public.lessons (
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
 );
+
+-- Columns added after the first release (no-ops on a fresh database).
+alter table public.lessons add column if not exists outcomes text not null default '';
+alter table public.lessons add column if not exists skills   text not null default '';
 
 -- Practice questions, several per lesson. Deleting a lesson deletes its questions.
 create table if not exists public.questions (

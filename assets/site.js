@@ -36,27 +36,25 @@
   window.MIM_mountVideos();
 
   // Numeric questions. Each .question has data-answer and optional data-tolerance / data-hint.
-  window.MIM_mountQuestions = function () {
+  // onScore(correct, total, answered) is called after every check; when omitted a default message is shown.
+  window.MIM_mountQuestions = function (onScore) {
     var questions = document.querySelectorAll('.question[data-answer]');
     var scoreBox = document.querySelector('[data-score]');
     var answered = {};
 
     function updateScore() {
-      if (!scoreBox) return;
       var correct = 0, done = 0;
       Object.keys(answered).forEach(function (k) { done++; if (answered[k]) correct++; });
-      scoreBox.querySelector('[data-score-correct]').textContent = correct;
-      scoreBox.querySelector('[data-score-total]').textContent = questions.length;
-      var msg = scoreBox.querySelector('[data-score-message]');
-      if (done < questions.length) {
-        msg.textContent = 'Answer every question to finish the lesson.';
-      } else if (correct === questions.length) {
-        msg.textContent = 'All correct. Lesson complete.';
-      } else if (correct >= Math.ceil(questions.length * 0.75)) {
-        msg.textContent = 'Nearly there. Open the worked solutions for the ones you missed and try again.';
-      } else {
-        msg.textContent = 'Watch the video once more, then read the worked solutions and retry.';
+      if (scoreBox) {
+        var c = scoreBox.querySelector('[data-score-correct]'); if (c) c.textContent = correct;
+        var t = scoreBox.querySelector('[data-score-total]'); if (t) t.textContent = questions.length;
       }
+      if (onScore) { onScore(correct, questions.length, done); return; }
+      var msg = scoreBox && scoreBox.querySelector('[data-score-message]');
+      if (!msg) return;
+      if (done < questions.length) msg.textContent = 'Answer every question to finish the lesson.';
+      else if (correct === questions.length) msg.textContent = 'All correct. Lesson complete.';
+      else msg.textContent = 'Open the worked solutions for the ones you missed and try again.';
     }
 
     questions.forEach(function (q, i) {

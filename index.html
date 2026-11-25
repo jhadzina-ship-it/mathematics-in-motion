@@ -6,97 +6,149 @@
   <title>Mathematics in Motion</title>
   <meta name="description" content="Short animated mathematics lessons by Jephias Hadzina, each with a video and practice questions you can check instantly.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+  <!--HEADER-->
   <header class="site-header">
     <div class="wrap">
-      <a class="brand" href="index.html">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="var(--spark)" stroke-width="2.4" stroke-linecap="round"/></svg>
-        Mathematics in Motion
-      </a>
-      <button class="nav-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="brand" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="2" y1="24" x2="30" y2="24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="24" x2="24" y2="8" stroke="#f1b434" stroke-width="2.4" stroke-linecap="round"/></svg>Mathematics in Motion</a>
       <nav class="nav" id="nav" aria-label="Main">
-        <a href="index.html">Home</a>
         <a href="lessons.html">Lessons</a>
-        <a href="textbooks.html">Textbooks</a>
-        <a href="approach.html">Approach</a>
+        <a href="textbooks.html">For teachers</a>
+        <a href="approach.html">How it works</a>
         <a href="about.html">About</a>
       </nav>
+      <div class="header-right">
+        <form class="search" action="lessons.html" method="get" role="search"><label class="sr-only" for="q">Search lessons</label><input id="q" name="q" type="search" placeholder="What do you want to learn?"><button type="submit" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></form>
+        <a class="btn btn-outline btn-sm" href="admin.html">Author sign-in</a>
+      </div>
     </div>
   </header>
+  <!--/HEADER-->
 
   <main>
-    <section class="hero">
-      <div class="wrap hero-grid">
-        <div>
-          <div class="eyebrow">Mathematics, animated</div>
-          <h1>See the maths move. Then prove you've got it.</h1>
-          <p class="lead">Short animated videos set in real places, from the walls of Great Zimbabwe to a circle on a page, each followed by practice questions that check your answer on the spot.</p>
-          <div class="btn-row">
-            <a class="btn btn-primary" id="hero-cta" href="lessons.html">Start the first lesson</a>
-            <a class="btn btn-ghost" href="lessons.html">Browse lessons</a>
+    <section style="padding-top:20px">
+      <div class="wrap">
+        <div class="banner">
+          <div>
+            <span class="banner-tag">Free · Forms 3 and 4 · Grades 9 to 11</span>
+            <h1>Mathematics you can see happen</h1>
+            <p>Short animated lessons set in real places, from the walls of Great Zimbabwe to a circle on the page, each followed by practice questions that check your answer on the spot.</p>
+            <div class="btn-row">
+              <a class="btn btn-outline" id="hero-cta" href="lessons.html">Start the first lesson →</a>
+              <a class="btn btn-primary" href="lessons.html">Browse all lessons</a>
+            </div>
+          </div>
+          <div class="banner-art">
+            <svg viewBox="0 0 260 230" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="130" cy="120" r="80" fill="none" stroke="#fff" stroke-width="2.4" opacity=".9"/>
+              <line x1="20" y1="200" x2="240" y2="200" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+              <line x1="130" y1="200" x2="191.3" y2="68.6" stroke="#7aa2ff" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="130" y1="200" x2="64.5" y2="74.1" stroke="#7aa2ff" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="64.5" y1="74.1" x2="191.3" y2="68.6" stroke="#7aa2ff" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M 154 200 A 24 24 0 0 0 140.1 178.4" fill="none" stroke="#f1b434" stroke-width="3"/>
+              <path d="M 85.3 88.4 A 24 24 0 0 0 88.5 73.1" fill="none" stroke="#f1b434" stroke-width="3"/>
+              <text x="161" y="172" font-size="14" font-weight="700" fill="#f1b434" font-family="Source Sans 3, Arial, sans-serif">α</text>
+              <text x="92" y="96" font-size="14" font-weight="700" fill="#f1b434" font-family="Source Sans 3, Arial, sans-serif">α</text>
+              <circle cx="130" cy="200" r="3.5" fill="#fff"/><circle cx="191.3" cy="68.6" r="3.5" fill="#fff"/><circle cx="64.5" cy="74.1" r="3.5" fill="#fff"/>
+            </svg>
           </div>
         </div>
-        <div class="hero-art"><svg viewBox="0 0 260 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A circle with a tangent and a chord, showing two equal angles"><style>.pulse{animation:pulse 2.6s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}</style><circle cx="130" cy="120" r="80" fill="none" stroke="currentColor" stroke-width="2.2"/><line x1="20.0" y1="200.0" x2="240.0" y2="200.0" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><line x1="130.0" y1="200.0" x2="208.8" y2="106.1" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/><line x1="130.0" y1="200.0" x2="64.5" y2="74.1" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/><line x1="208.8" y1="106.1" x2="64.5" y2="74.1" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/><g class="pulse"><path d="M 154.0 200.0 A 24 24 0 0 0 145.4 181.6" fill="none" stroke="var(--spark)" stroke-width="2.5"/><text x="166.3" y="183.1" font-size="13" font-weight="600" fill="var(--spark)" text-anchor="middle" dominant-baseline="middle" font-family="Inter, system-ui, sans-serif">α</text><path d="M 75.5 95.4 A 24 24 0 0 0 87.9 79.3" fill="none" stroke="var(--spark)" stroke-width="2.5"/><text x="96.2" y="98.5" font-size="13" font-weight="600" fill="var(--spark)" text-anchor="middle" dominant-baseline="middle" font-family="Inter, system-ui, sans-serif">α</text></g><circle cx="130.0" cy="200.0" r="3.2" fill="currentColor"/><circle cx="208.8" cy="106.1" r="3.2" fill="currentColor"/><circle cx="64.5" cy="74.1" r="3.2" fill="currentColor"/><text x="130.0" y="216.0" font-size="14" font-weight="600" fill="currentColor" text-anchor="middle" dominant-baseline="middle" font-family="Inter, system-ui, sans-serif">A</text><text x="10.0" y="200.0" font-size="14" font-weight="600" fill="currentColor" text-anchor="middle" dominant-baseline="middle" font-family="Inter, system-ui, sans-serif">P</text><text x="250.0" y="200.0" font-size="14" font-weight="600" fill="currentColor" text-anchor="middle" dominant-baseline="middle" font-family="Inter, system-ui, sans-serif">Q</text><text x="222.6" y="103.7" font-size="14" font-weight="600" fill="currentColor" text-anchor="middle" dominant-baseline="middle" font-family="Inter, system-ui, sans-serif">B</text><text x="53.0" y="66.1" font-size="14" font-weight="600" fill="currentColor" text-anchor="middle" dominant-baseline="middle" font-family="Inter, system-ui, sans-serif">C</text></svg></div>
       </div>
     </section>
 
     <section>
       <div class="wrap">
-        <div class="section-head">
-          <h2>How a lesson works</h2>
-          <p class="muted">Every lesson is one idea, taught the same way.</p>
-        </div>
+        <div class="section-title"><h2>New and popular</h2><a href="lessons.html">See all lessons →</a></div>
+        <div class="rail" id="featured"><p class="muted">Loading lessons…</p></div>
+      </div>
+    </section>
+
+    <section style="padding-top:8px">
+      <div class="wrap grid grid-3">
+        <a class="tile" href="lessons.html">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#0056d2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="10" width="36" height="26" rx="3"/><path d="m20 17 10 6-10 6z"/><path d="M14 42h20"/></svg>
+          <div><h3>Watch a lesson</h3><p>Two-minute animations that show why a result is true.</p></div>
+        </a>
+        <a class="tile" href="textbooks.html">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#0056d2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10h12a6 6 0 0 1 6 6v24a4 4 0 0 0-4-4H8z"/><path d="M40 10H28a6 6 0 0 0-6 6v24a4 4 0 0 1 4-4h14z"/></svg>
+          <div><h3>Teach with it</h3><p>Every lesson mapped to the chapter in enVision, Big Ideas and HMH.</p></div>
+        </a>
+        <a class="tile" href="approach.html">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#0056d2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="16"/><path d="m16 24 6 6 10-12"/></svg>
+          <div><h3>Master it</h3><p>Typed answers, instant feedback, worked solutions on demand.</p></div>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-title"><h2>Explore topics</h2></div>
+        <div class="chips" id="topics"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-title"><h2>How a lesson works</h2></div>
         <div class="grid grid-3">
-          <div class="card"><div class="num">1</div><h3>Watch</h3><p>A short animation, about two minutes, that builds the picture step by step so the result feels inevitable rather than memorised.</p></div>
-          <div class="card"><div class="num">2</div><h3>Practise</h3><p>Four to five questions on the page. Type a number, press check, and get feedback straight away. A hint appears after a miss.</p></div>
-          <div class="card"><div class="num">3</div><h3>Master</h3><p>Worked solutions open when you need them. Get them all right and the lesson is done. Nothing to install, nothing to sign up for.</p></div>
+          <div class="panel"><div class="eyebrow">Step 1</div><h3>Watch</h3><p class="muted" style="margin:0">A short animation, about two minutes, that builds the picture step by step so the result feels inevitable rather than memorised.</p></div>
+          <div class="panel"><div class="eyebrow">Step 2</div><h3>Practise</h3><p class="muted" style="margin:0">Four to five questions on the page. Type a number, press Check, and get feedback straight away. A hint appears after a miss.</p></div>
+          <div class="panel"><div class="eyebrow">Step 3</div><h3>Master</h3><p class="muted" style="margin:0">Worked solutions open when you need them. Get them all right and the lesson is complete. Nothing to install, nothing to sign up for.</p></div>
         </div>
       </div>
     </section>
 
     <section>
       <div class="wrap">
-        <div class="section-head">
-          <h2>Live lessons</h2>
-        </div>
-        <div class="grid" id="featured"><p class="muted">Loading lessons…</p></div>
-      </div>
-    </section>
-
-    <section>
-      <div class="wrap grid grid-2">
-        <div class="card">
-          <h3>Fits the textbook you already use</h3>
-          <p class="muted">Each lesson is mapped to the matching chapter in enVision Geometry, Big Ideas Math Geometry and HMH Into Geometry, so a teacher can slot a video into an existing unit.</p>
-          <a href="textbooks.html">See the alignment</a>
-        </div>
-        <div class="card">
-          <h3>Built for mastery, not just views</h3>
-          <p class="muted">The roadmap borrows from Khan Academy, Kolibri and Moodle: a gated path where you prove one idea before the next one opens.</p>
-          <a href="approach.html">Read the approach</a>
+        <div class="banner" style="grid-template-columns:1fr;padding:28px 32px;background:linear-gradient(90deg,#0056d2,#2a8cff)">
+          <div>
+            <h2 style="color:#fff;margin-bottom:.2em">Teaching geometry or trigonometry this term?</h2>
+            <p style="margin:0 0 14px">See which lesson matches the chapter you are on, then assign the video and the practice questions as homework.</p>
+            <a class="btn btn-outline" href="textbooks.html">See the textbook alignment →</a>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
+  <!--FOOTER-->
   <footer class="site-footer">
     <div class="wrap">
-      <span>Mathematics in Motion · Jephias Hadzina</span>
-      <span>Built as a static site on GitHub Pages. <a href="about.html">Contact</a> · <a href="admin.html">Author sign-in</a></span>
+      <div>
+        <h4>Mathematics in Motion</h4>
+        <p>Animated mathematics lessons by Jephias Hadzina. Free, with practice questions checked in your browser.</p>
+      </div>
+      <div>
+        <h4>Learn</h4>
+        <ul><li><a href="lessons.html">All lessons</a></li><li><a href="approach.html">How it works</a></li><li><a href="textbooks.html">For teachers</a></li></ul>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <ul><li><a href="about.html">About</a></li><li><a href="about.html">Contact</a></li><li><a href="admin.html">Author sign-in</a></li></ul>
+      </div>
     </div>
   </footer>
+  <!--/FOOTER-->
   <script src="assets/config.js"></script>
   <script src="content/lessons.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
   <script>
     MIM.loadLessons().then(function (list) {
-      var live = list.filter(function (l) { return l.status === 'live'; });
-      document.getElementById('featured').innerHTML = live.map(MIM.lessonCard).join('') || '<p class="muted">No live lessons yet.</p>';
+      var shown = list.filter(function (l) { return l.status !== 'draft'; })
+        .sort(function (a, b) { return (a.status === 'live' ? 0 : 1) - (b.status === 'live' ? 0 : 1); });
+      document.getElementById('featured').innerHTML = shown.map(MIM.lessonCard).join('') || '<p class="muted">No lessons yet.</p>';
+      var live = shown.filter(function (l) { return l.status === 'live'; });
       if (live[0]) document.getElementById('hero-cta').href = 'lesson.html?id=' + encodeURIComponent(live[0].slug);
+      var topics = {};
+      shown.forEach(function (l) { if (l.topic) topics[l.topic] = (topics[l.topic] || 0) + 1; });
+      document.getElementById('topics').innerHTML = Object.keys(topics).sort().map(function (t) {
+        return '<a class="chip" href="lessons.html?topic=' + encodeURIComponent(t) + '">' + MIM.esc(t) + ' <span class="muted">(' + topics[t] + ')</span></a>';
+      }).join('');
     });
   </script>
 </body>
