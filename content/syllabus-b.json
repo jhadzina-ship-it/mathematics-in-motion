@@ -1,0 +1,79 @@
+{
+  "title": "Mathematics Syllabus B, Forms 1 to 4",
+  "authority": "Ministry of Primary and Secondary Education (MoPSE) with ZIMSEC, Heritage-Based Curriculum",
+  "years": "2024 to 2030",
+  "note": "Topic numbers and sub-topics follow the syllabus's own Scope and Sequence chart. The site's chapters use these numbers, so a lesson in Trigonometry is 10.1, 10.2 and so on.",
+  "topics": [
+    { "number": 1, "name": "Real Numbers", "subtopics": [
+      { "name": "Number concepts and operations", "forms": { "1": ["Number types", "Factors and multiples", "Directed numbers", "Fractions and percentages", "Order of operations"], "2": ["Factors and multiples", "Squares and square roots", "Cubes and cube roots", "Order of operations"], "3": ["Irrational numbers", "Number patterns"] } },
+      { "name": "Approximations and estimations", "forms": { "1": ["Round off numbers", "Decimal places", "Significant figures", "Estimations"], "2": ["Estimations", "Significant figures", "Basic limits of accuracy"], "3": ["Limits of accuracy"] } },
+      { "name": "Ratios, rates and proportions", "forms": { "1": ["Ratios"], "2": ["Ratios", "Proportions"], "3": ["Ratios", "Rates", "Proportions"] } },
+      { "name": "Ordinary and standard form", "forms": { "2": ["Large and small numbers", "Numbers in standard form"], "3": ["Operations in standard form"] } },
+      { "name": "Number bases", "forms": { "2": ["Number bases in everyday life", "Place values"], "3": ["Converting numbers from one base to another"], "4": ["Operations in number bases"] } },
+      { "name": "Scales and simple map problems", "forms": { "2": ["Scale measurement", "Scale drawing"], "3": ["Scales", "Length factor", "Area factor"] } }
+    ] },
+    { "number": 2, "name": "Sets", "subtopics": [
+      { "name": "Sets", "forms": { "1": ["Sets and set notation", "Types of sets"], "2": ["Types of sets", "Venn diagram with two subsets"], "3": ["Set builder notation", "Venn diagrams with three subsets"] } }
+    ] },
+    { "number": 3, "name": "Financial Mathematics", "subtopics": [
+      { "name": "Consumer arithmetic", "forms": { "1": ["Household bills", "Profit and loss", "Discount"], "2": ["Household budgets", "Corporate bills", "Profit and loss", "Simple interest", "Hire purchase"], "3": ["Small scale enterprise budgets", "Bank statements", "Compound interest", "Commission", "Hire purchase", "Foreign exchange"], "4": ["Sales and income tax rates (PAYE)", "Value added tax (VAT)", "Customs and excise duty"] } }
+    ] },
+    { "number": 4, "name": "Measures and Mensuration", "subtopics": [
+      { "name": "Measures", "forms": { "1": ["Units of time, mass, length, temperature, capacity"], "2": ["Units of area, volume, capacity, density"] } },
+      { "name": "Mensuration", "forms": { "1": ["Perimeter of plane shapes", "Area of plane shapes", "Volume of cuboids"], "2": ["Perimeter of plane shapes", "Area of plane shapes", "Volume of cylinders"], "3": ["Perimeter of combined shapes", "Area of combined shapes", "Volume of cones and pyramids", "Density"], "4": ["Area and volumes of similar shapes", "Surface area", "Volume of prisms"] } }
+    ] },
+    { "number": 5, "name": "Graphs", "subtopics": [
+      { "name": "Functional graphs", "forms": { "1": ["Cartesian plane", "Scale", "Co-ordinates"], "2": ["Cartesian plane", "Table of values", "Linear graphs", "Scale"], "3": ["Functional notation", "Linear graphs", "Quadratic graphs"], "4": ["Cubic graph", "Inverse graph"] } },
+      { "name": "Travel graphs", "forms": { "1": ["Distance-time graphs"], "2": ["Distance-time graphs"], "3": ["Distance-time graphs", "Speed-time graphs"], "4": ["Displacement-time graphs", "Velocity-time graphs"] } }
+    ] },
+    { "number": 6, "name": "Variation", "subtopics": [
+      { "name": "Variation", "forms": { "2": ["Direct variation"], "3": ["Direct variation", "Inverse variation"], "4": ["Joint variation", "Partial variation"] } }
+    ] },
+    { "number": 7, "name": "Algebra", "subtopics": [
+      { "name": "Algebraic manipulation", "forms": { "1": ["Basic arithmetic processes in letter symbols", "Substitution of values"], "2": ["Substitution of values", "Algebraic expressions", "Algebraic fractions"], "3": ["Algebraic fractions", "HCF and LCM of algebraic expressions", "Quadratic expressions", "Factorisation"], "4": ["Algebraic fractions", "Quadratic expressions", "Factorisation", "Completing the square"] } },
+      { "name": "Equations", "forms": { "1": ["Linear equations"], "2": ["Equations with brackets", "Equations with fractions", "Change of subject of formulae", "Simultaneous linear equations"], "3": ["Quadratic equations", "Simultaneous equations", "Change of subject of formulae", "Substitution of values"], "4": ["Quadratic equations", "Completing the square", "Quadratic formula"] } },
+      { "name": "Inequalities", "forms": { "1": ["Linear inequalities"], "2": ["Linear inequalities", "Number line", "Cartesian plane"], "3": ["Simultaneous inequalities", "Graphs of inequalities"], "4": ["Linear programming"] } },
+      { "name": "Indices and logarithms", "forms": { "1": ["Index form"], "2": ["Laws of indices", "HCF and LCM in index form", "Squares and square roots", "Cubes and cube roots"], "3": ["Indices", "Logarithms"], "4": ["Theory of logarithms", "Equations involving indices and logarithms"] } }
+    ] },
+    { "number": 8, "name": "Geometry", "subtopics": [
+      { "name": "Points, lines and angles", "forms": { "1": ["Points", "Lines", "Angles"], "2": ["Angles", "Transversal and parallel lines"], "3": ["Angles of elevation and depression"] } },
+      { "name": "Bearing", "forms": { "1": ["Cardinal points"], "2": ["Three figure bearing", "Compass bearing"], "3": ["Three figure bearing", "Compass bearing"] } },
+      { "name": "Polygons", "forms": { "1": ["Polygons"], "2": ["Properties of polygons (triangles and quadrilaterals)"], "3": ["Properties of polygons (pentagon to circle)", "Angle properties of polygons", "Circle theorems"], "4": ["Numbers of sides of polygons", "Circle theorems: angle at the centre and circumference, angle in a semicircle, angles in the same segment, angle in the alternate segment, cyclic quadrilateral, tangent and radius"] } },
+      { "name": "Similarity and congruency", "forms": { "2": ["Similar and congruent figures", "Similar triangles", "Congruent triangles"], "3": ["Areas of similar figures", "Volume and mass of similar solids"] } },
+      { "name": "Constructions and loci", "forms": { "1": ["Construction of lines and angles"], "2": ["Construction of angles", "Bisecting lines and angles"], "3": ["Construction of triangles and quadrilaterals"], "4": ["Construction of diagram to a scale", "Loci"] } },
+      { "name": "Symmetry", "forms": { "2": ["Line symmetry in two dimensions"], "3": ["Line symmetry in two dimensions", "Rotational symmetry in two dimensions"] } }
+    ] },
+    { "number": 9, "name": "Statistics", "subtopics": [
+      { "name": "Data collection and classification", "forms": { "1": ["Data collection", "Data classification"], "2": ["Data collection", "Classification of ungrouped data"], "3": ["Collection and classification of grouped data"] } },
+      { "name": "Data representation", "forms": { "1": ["Pictograms", "Bar chart", "Frequency distribution table"], "2": ["Bar chart", "Frequency distribution table", "Pie chart"], "3": ["Frequency table", "Bar chart", "Pie chart", "Histogram", "Frequency polygon"], "4": ["Frequency table", "Histogram", "Frequency polygon", "Cumulative frequency table", "Cumulative frequency curve"] } },
+      { "name": "Measures of central tendency", "forms": { "2": ["Mean", "Mode", "Median"], "3": ["Mean, median and mode of grouped data", "Assumed mean"], "4": ["Median from cumulative frequency curve"] } },
+      { "name": "Measures of dispersion", "forms": { "4": ["Quartiles", "Interquartile range"] } }
+    ] },
+    { "number": 10, "name": "Trigonometry", "subtopics": [
+      { "name": "Pythagoras theorem", "forms": { "3": ["Introduction to Pythagoras theorem"] } },
+      { "name": "Trigonometrical ratios", "forms": { "3": ["Trigonometrical ratios of acute angles: sine, cosine, tangent", "Solving right-angled triangles in two dimensions"], "4": ["Trigonometrical ratios of obtuse angles", "Cosine rule", "Sine rule"] } }
+    ] },
+    { "number": 11, "name": "Matrices", "subtopics": [
+      { "name": "Dimension and order", "forms": { "2": ["Order of matrices", "Types of matrices"] } },
+      { "name": "Operations", "forms": { "2": ["Addition and subtraction of matrices"], "3": ["Addition and subtraction of matrices", "Scalar multiplication of matrices", "Multiplication of matrices"] } },
+      { "name": "Determinants", "forms": { "3": ["Determinants of matrices", "Singular and non-singular matrices"] } },
+      { "name": "Inverse matrix", "forms": { "4": ["Inverse of a matrix", "Simultaneous linear equations in two variables"] } }
+    ] },
+    { "number": 12, "name": "Vectors", "subtopics": [
+      { "name": "Definition and notation", "forms": { "2": ["Definition of vector", "Vector notation"] } },
+      { "name": "Types of vectors", "forms": { "3": ["Translation vectors", "Negative vectors", "Equal vectors", "Parallel vectors"], "4": ["Translation, negative, equal, parallel and position vectors"] } },
+      { "name": "Operations", "forms": { "3": ["Addition of vectors", "Subtraction of vectors"], "4": ["Addition and subtraction of vectors", "Scalar multiplication", "Magnitude", "Combined vector operations", "Vector properties of plane shapes"] } }
+    ] },
+    { "number": 13, "name": "Transformations", "subtopics": [
+      { "name": "Translation", "forms": { "1": ["Translation of plane figures"], "2": ["Translation vector to move a point"], "3": ["Translation vector to move a plane figure on the Cartesian plane"], "4": ["Use of translation vectors"] } },
+      { "name": "Reflection", "forms": { "2": ["Reflection of plane figures"], "3": ["Reflection of plane figures on a Cartesian plane in the x-axis, y-axis, lines y = a and x = b"], "4": ["Reflection of plane figures in any line and use of matrices"] } },
+      { "name": "Rotation", "forms": { "3": ["Rotation of plane figures in a Cartesian plane by drawing"], "4": ["Rotation of plane figures by drawing and use of matrices"] } },
+      { "name": "Enlargement", "forms": { "3": ["Enlargement about the origin using a rational scale by drawing"], "4": ["Enlargement using matrices and about any point using a rational scale"] } },
+      { "name": "Stretch", "forms": { "4": ["One-way and two-way stretch using matrices and geometrical methods"] } },
+      { "name": "Shear", "forms": { "4": ["Shear using matrices and geometrical methods"] } }
+    ] },
+    { "number": 14, "name": "Probability", "subtopics": [
+      { "name": "Probability", "forms": { "2": ["Definition of probability terms", "Experimental probability"], "3": ["Experimental probability", "Theoretical probability", "Single events"], "4": ["Combined events", "Application of probability"] } }
+    ] }
+  ]
+}

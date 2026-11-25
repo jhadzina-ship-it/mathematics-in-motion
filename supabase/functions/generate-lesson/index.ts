@@ -6,6 +6,8 @@
 // The assistant asks for what it still needs (video link, level, number of questions,
 // setting, wishes), then proposes the complete lesson through a tool call. The browser
 // shows the reply, and when a lesson comes back it fills the admin form for review.
+// Lessons are aligned to the Zimbabwe O-Level syllabus (MoPSE/ZIMSEC Mathematics
+// Syllabus B, Forms 1-4, 2024-2030) and numbered within its topics: 10.1, 10.2, ...
 // Only a signed-in author may call it. The Anthropic key lives in the function's
 // secrets (ANTHROPIC_API_KEY), never in the browser.
 
@@ -20,31 +22,56 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Syllabus B topics (scope-and-sequence chart numbering). Chapters on the site use these numbers.
+const TOPICS: Record<number, string> = {
+  1: "Real Numbers", 2: "Sets", 3: "Financial Mathematics", 4: "Measures and Mensuration", 5: "Graphs", 6: "Variation",
+  7: "Algebra", 8: "Geometry", 9: "Statistics", 10: "Trigonometry", 11: "Matrices", 12: "Vectors", 13: "Transformations", 14: "Probability",
+};
+const SYLLABUS_NOTES = `Form 3 and Form 4 content by topic (MoPSE/ZIMSEC Mathematics Syllabus B 2024-2030, scope-and-sequence chart):
+1 Real Numbers: F3 irrational numbers, number patterns, limits of accuracy, ratios/rates/proportions, operations in standard form, converting number bases, scales (length and area factor); F4 operations in number bases.
+2 Sets: F3 set builder notation, Venn diagrams with three subsets.
+3 Financial Mathematics: F3 enterprise budgets, bank statements, compound interest, commission, hire purchase, foreign exchange; F4 PAYE, VAT, customs and excise duty.
+4 Measures and Mensuration: F3 perimeter and area of combined shapes, volume of cones and pyramids, density; F4 area and volume of similar shapes, surface area, volume of prisms.
+5 Graphs: F3 functional notation, linear and quadratic graphs, distance-time and speed-time graphs; F4 cubic and inverse graphs, displacement-time and velocity-time graphs.
+6 Variation: F3 direct and inverse variation; F4 joint and partial variation.
+7 Algebra: F3 algebraic fractions, HCF/LCM of expressions, quadratic expressions, factorisation, quadratic and simultaneous equations, change of subject, simultaneous inequalities, graphs of inequalities, indices, logarithms; F4 completing the square, quadratic formula, linear programming, theory of logarithms, equations with indices and logarithms.
+8 Geometry: F3 angles of elevation and depression (scale drawing), bearings, properties of polygons, angle properties of polygons, circle theorems, areas of similar figures, volume and mass of similar solids, constructions of triangles and quadrilaterals, rotational symmetry; F4 circle theorems (angle at the centre and circumference, angle in a semicircle, angles in the same segment, angle in the alternate segment, cyclic quadrilateral, tangent and radius), numbers of sides of polygons, construction to scale, loci.
+9 Statistics: F3 grouped data, histogram, frequency polygon, mean/median/mode of grouped data, assumed mean; F4 cumulative frequency table and curve, median from the curve, quartiles, interquartile range.
+10 Trigonometry: F3 Pythagoras theorem, trigonometrical ratios of acute angles (sine, cosine, tangent), solving right-angled triangles in two dimensions; F4 ratios of obtuse angles, sine rule, cosine rule.
+11 Matrices: F3 addition, subtraction, scalar multiplication, multiplication, determinants, singular and non-singular matrices; F4 inverse of a matrix, simultaneous equations by matrices.
+12 Vectors: F3 translation, negative, equal and parallel vectors, addition and subtraction; F4 position vectors, scalar multiplication, magnitude, combined operations, vector properties of plane shapes.
+13 Transformations: F3 translation vectors on the Cartesian plane, reflection in the axes and in lines y = a and x = b, rotation by drawing, enlargement about the origin by drawing; F4 use of matrices for reflection, rotation and enlargement about any point, stretch, shear.
+14 Probability: F3 experimental and theoretical probability, single events; F4 combined events, applications.`;
+
 const QUESTION_SCHEMA = {
   type: "object", additionalProperties: false,
-  required: ["prompt", "answer", "tolerance", "unit", "hint", "solution"],
+  required: ["kind", "prompt", "answer", "tolerance", "unit", "hint", "solution"],
   properties: {
-    prompt: { type: "string", description: "The question as the student reads it. Give every number the student needs." },
+    kind: { type: "string", enum: ["video_check", "calculation"], description: "'video_check' for a question whose numbers come straight from the video so it shows the student watched it; 'calculation' for the rest. Exactly one video_check per lesson, placed first." },
+    prompt: { type: "string", description: "The question as the student reads it. A calculation the student must work through on paper. Give every number the student needs." },
     answer: { type: "number", description: "The correct numeric answer." },
     tolerance: { type: "number", description: "How far off still counts: 0.15 for answers to 1 decimal place, 0.01 for whole-number answers." },
     unit: { type: "string", description: "Unit shown after the answer box: '°', 'm', 'cm', or '' if none." },
     hint: { type: "string", description: "One sentence shown after a wrong attempt. Points at the method, never gives the answer." },
-    solution: { type: "string", description: "Worked solution with every step and the final answer." },
+    solution: { type: "string", description: "Worked solution with every step and the final answer. This is also the marking scheme for the student's working." },
   },
 };
 
 // The lesson record, exactly the fields of the lessons table that the author edits.
 const LESSON_SCHEMA = {
   type: "object", additionalProperties: false,
-  required: ["slug", "number", "title", "topic", "chapter", "level", "duration", "hook", "summary", "outcomes", "skills",
-    "theorem", "explanation", "us_name", "textbook_envision", "textbook_bigideas", "textbook_hmh", "standard", "questions"],
+  required: ["slug", "syllabus_topic", "number", "title", "level", "syllabus_form", "syllabus_subtopic", "syllabus_objective", "textbook_ref", "duration",
+    "hook", "summary", "outcomes", "skills", "theorem", "explanation", "questions"],
   properties: {
     slug: { type: "string", description: "Lowercase letters, digits and dashes only, e.g. angle-of-depression." },
-    number: { type: "string", description: "Lesson number within its chapter, e.g. 8.2. Do not reuse a number that an existing lesson already has." },
+    syllabus_topic: { type: "integer", description: "Syllabus B topic number 1 to 14 that the lesson belongs to. This decides the chapter." },
+    number: { type: "string", description: "Lesson number: the topic number, a dot, then the next free position in that topic, e.g. 10.2. Use exactly the next free number given in the context unless the author asks for a specific one." },
     title: { type: "string", description: "The lesson title." },
-    topic: { type: "string", description: "One of: Trigonometry, Circles, Algebra & Functions, Calculus, Statistics & Probability, Geometry & Transformations, Mathematical Modelling." },
-    chapter: { type: "string", description: "Format 'Chapter N · Topic', e.g. 'Chapter 8 · Trigonometry'. Reuse an existing chapter when the topic matches." },
-    level: { type: "string", description: "e.g. 'Forms 3 and 4'." },
+    level: { type: "string", description: "'Form 3', 'Form 4' or 'Forms 3 and 4'." },
+    syllabus_form: { type: "string", description: "The Form in which the syllabus places this content: 'Form 3' or 'Form 4'." },
+    syllabus_subtopic: { type: "string", description: "The syllabus sub-topic, in the syllabus's words, e.g. 'Trigonometrical ratios' or 'Polygons: circle theorems'." },
+    syllabus_objective: { type: "string", description: "The learning objective the lesson meets, in the syllabus's words where possible." },
+    textbook_ref: { type: "string", description: "A Zimbabwean O-Level textbook chapter the teacher can use alongside, if you are confident of one (e.g. a New General Mathematics or ZIMSEC-approved text); otherwise ''. Never invent a chapter number." },
     duration: { type: "string", description: "Video length as m:ss if known, else ''." },
     hook: { type: "string", description: "One or two sentences, the real-world situation that makes a student curious." },
     summary: { type: "string", description: "At most 30 words, shown on the lesson card." },
@@ -52,39 +79,40 @@ const LESSON_SCHEMA = {
     skills: { type: "string", description: "'Skills you'll gain': 4 to 6 short skill names, comma-separated." },
     theorem: { type: "string", description: "The idea in one sentence, as a theorem or rule statement." },
     explanation: { type: "string", description: "The explanation that sits under the video, 120 to 220 words, using the video's own numbers." },
-    us_name: { type: "string", description: "What US textbooks call this result." },
-    textbook_envision: { type: "string", description: "Where it sits in Savvas enVision Geometry (or Algebra), chapter/topic level." },
-    textbook_bigideas: { type: "string", description: "Where it sits in Big Ideas Math Geometry (or Algebra), chapter level." },
-    textbook_hmh: { type: "string", description: "Where it sits in HMH Into Geometry (or Algebra), unit level." },
-    standard: { type: "string", description: "The matching Common Core standard code, e.g. HSG-SRT.C.8." },
-    questions: { type: "array", description: "4 to 6 practice questions in rising difficulty unless the author asked for a number. Typed numeric answers only, never multiple choice.", items: QUESTION_SCHEMA },
+    questions: { type: "array", description: "4 to 6 questions unless the author asked for a number: the first is the video_check, then calculations rising in difficulty. Typed numeric answers and written working; never multiple choice.", items: QUESTION_SCHEMA },
   },
 };
 
-interface Question { prompt: string; answer: number; tolerance: number; unit: string; hint: string; solution: string; position?: number; figure?: string }
-interface Lesson { slug: string; number: string; title: string; topic: string; chapter: string; level: string; duration: string; hook: string; summary: string; outcomes: string; skills: string; theorem: string; explanation: string; us_name: string; textbook_envision: string; textbook_bigideas: string; textbook_hmh: string; standard: string; questions: Question[]; video_id?: string; status?: string }
+interface Question { kind: string; prompt: string; answer: number; tolerance: number; unit: string; hint: string; solution: string; position?: number; figure?: string }
+interface Lesson { slug: string; syllabus_topic: number; number: string; title: string; level: string; syllabus_form: string; syllabus_subtopic: string; syllabus_objective: string; textbook_ref: string; duration: string; hook: string; summary: string; outcomes: string; skills: string; theorem: string; explanation: string; questions: Question[]; topic?: string; chapter?: string; video_id?: string; status?: string }
 interface ChatMessage { role: "user" | "assistant"; content: string }
+interface Existing { number: string; title: string; chapter: string; syllabus_topic?: number; slug?: string }
 
-const SYSTEM = `You help Jephias Hadzina post lessons on Mathematics in Motion, a free site of short animated mathematics videos. Students are in Forms 3 and 4 in Zimbabwe (US grades 9 to 11), strong at mathematics and easily bored; the aim is to make them excited. You are talking with Jephias, the author, in a chat on his admin page.
+const SYSTEM = `You help Jephias Hadzina post lessons on Mathematics in Motion, a free Zimbabwean site of short animated mathematics videos for O-Level students (Forms 3 and 4, ZIMSEC). Students are strong at mathematics and easily bored; the aim is to make them excited. You are talking with Jephias, the author, in a chat on his admin page.
 
-Every lesson has one video, one idea, and a practice quiz with typed numeric answers (never multiple choice). Your job is to get from his words to a complete, correct lesson record, then propose it with the propose_lesson tool.
+Every lesson has one video, one idea, and practice questions that are calculations the student works through on paper and submits as typed working or a photo. Your job is to get from his words to a complete, correct lesson record, then propose it with the propose_lesson tool.
 
 How to run the conversation:
 - Be brief and friendly. One or two short questions at a time, never a long form.
-- You need, at minimum: the YouTube link (or a clear description of the video if it is not uploaded yet) and what the lesson is about. Useful if he has them: the level (Form 3, Form 4, both), how many questions, a setting or story for the questions, anything he wants included or avoided, and his script if the video details are thin.
+- You need, at minimum: the YouTube link (or a clear description of the video if it is not uploaded yet) and what the lesson is about. Useful if he has them: the Form, how many questions, a setting or story for the questions, anything to include or avoid, and his script if the video details are thin.
 - If he gives you everything in his first message, do not ask questions: propose the lesson straight away.
-- When the video details (title, description, length) are available, use them and do not ask for what they already tell you.
+- When the video details (title, description, length) are in the context, use them and never ask for what they already tell you.
 - Once you have enough, call propose_lesson with the complete record and say in one or two sentences what you made and what he might want to change. Do not paste the lesson as text.
 - If a draft already exists and he asks for a change, call propose_lesson again with the whole record, changing only what he asked. Keep everything else exactly as it was.
 - Never mark anything as posted or live yourself; he saves it from the form.
 
+Syllabus and numbering:
+- Place every lesson in one Syllabus B topic (1 to 14) and give the Form, sub-topic and objective from the syllabus notes below.
+- Lessons inside a topic are numbered in teaching order: 10.1, 10.2, 10.3. The context tells you the next free number in each topic; use it. A student must finish one lesson before the next opens, so order matters: if the new lesson is a prerequisite of an existing one, say so and suggest the order, but still use the next free number unless Jephias asks to renumber.
+
 Writing rules for the lesson:
-- Use the video's own numbers and setting in the explanation and in the first question. Later questions vary the numbers and the situation.
-- Questions rise in difficulty: first the same calculation as the video, then new numbers, then an inverse (find a side from an angle, or vice versa), then a two-step question, then a conceptual twist.
+- Use the video's own numbers and setting in the explanation and in the first question (the video_check), so a student who skipped the video cannot answer it. Later questions vary the numbers and the situation.
+- Questions rise in difficulty: the video check, then new numbers, then an inverse (find a side from an angle, or vice versa), then a two-step question, then a conceptual twist. They must need written working, not a one-line recall.
 - Every answer must be correct. Recompute each one from the question's numbers before you write it down, and show that computation in the solution. Round as the question asks and set the tolerance to match (0.15 for one decimal place, 0.01 for whole numbers).
 - Hints point at the method and never state the answer.
 - Plain British English with metres, degrees and decimal points. Use ÷ and × rather than / and *. Write angles like 33.7°.
-- Textbook placement at chapter or topic level unless you are certain of a section. Never invent a section number.`;
+
+${SYLLABUS_NOTES}`;
 
 function videoId(s: string): string {
   const m = /(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})/.exec(s || "");
@@ -92,15 +120,15 @@ function videoId(s: string): string {
   return /^[A-Za-z0-9_-]{11}$/.test((s || "").trim()) ? s.trim() : "";
 }
 
-// Title, description and length of a YouTube video, via YouTube's own player endpoint, with oEmbed as a fallback for the title.
+// Title, description and length of a YouTube video via YouTube's player endpoint (web client), with oEmbed as a fallback for the title.
 async function videoDetails(id: string): Promise<{ title: string; description: string; duration: string }> {
   const out = { title: "", description: "", duration: "" };
   if (!id) return out;
   try {
     const r = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
       method: "POST",
-      headers: { "content-type": "application/json", "user-agent": "com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip" },
-      body: JSON.stringify({ context: { client: { clientName: "ANDROID", clientVersion: "19.09.37", androidSdkVersion: 30, hl: "en" } }, videoId: id }),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ context: { client: { clientName: "WEB", clientVersion: "2.20240101.00.00", hl: "en" } }, videoId: id }),
     });
     const j = await r.json();
     const d = j?.videoDetails || {};
@@ -121,6 +149,20 @@ function slugify(s: string): string {
   return (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
 }
 
+// Next free lesson number in each topic, from the lessons already on the site.
+function nextNumbers(existing: Existing[]): Record<number, string> {
+  const max: Record<number, number> = {};
+  for (const l of existing) {
+    const m = /^(\d+)\.(\d+)$/.exec(String(l.number || "").trim());
+    if (!m) continue;
+    const t = parseInt(m[1], 10), n = parseInt(m[2], 10);
+    if (!max[t] || n > max[t]) max[t] = n;
+  }
+  const out: Record<number, string> = {};
+  for (let t = 1; t <= 14; t++) out[t] = `${t}.${(max[t] || 0) + 1}`;
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   const json = (body: unknown, status = 200) =>
@@ -137,10 +179,11 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) return json({ error: "ANTHROPIC_API_KEY is not set in the function's secrets." }, 500);
 
-  let body: { messages?: ChatMessage[]; draft?: Lesson | null; script?: string; existing?: { number: string; title: string; chapter: string }[] };
+  let body: { messages?: ChatMessage[]; draft?: Lesson | null; script?: string; existing?: Existing[] };
   try { body = await req.json(); } catch { return json({ error: "Bad request body." }, 400); }
   const history = (body.messages || []).filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim());
   if (!history.length || history[history.length - 1].role !== "user") return json({ error: "Send at least one user message." }, 400);
+  const existing = (body.existing || []).filter((l) => l && l.number);
 
   // Find the video: the latest link in the conversation, else the draft's id.
   let id = "";
@@ -149,21 +192,20 @@ Deno.serve(async (req) => {
   const details = await videoDetails(id);
 
   // Context the model gets with every turn (kept out of the chat transcript itself).
+  const next = nextNumbers(existing.filter((l) => !body.draft || l.slug !== body.draft.slug));
   const context: string[] = [];
   if (id) context.push(`YouTube video id: ${id}`);
   if (details.title) context.push(`Video title: ${details.title}`);
   if (details.duration) context.push(`Video length: ${details.duration}`);
   if (details.description) context.push(`Video description:\n${details.description}`);
   if (body.script) context.push(`The author's script or transcript of the video:\n${body.script}`);
-  if (body.existing?.length) context.push(`Lessons already on the site (number, title, chapter):\n` + body.existing.map((l) => `${l.number} ${l.title} (${l.chapter})`).join("\n"));
-  if (body.draft) context.push(`The draft currently in the author's form (JSON). If he asks for changes, change only what he asks:\n${JSON.stringify(body.draft)}`);
+  context.push(`Lessons already on the site (number, title):\n` + (existing.length ? existing.map((l) => `${l.number} ${l.title}`).join("\n") : "none yet"));
+  context.push(`Next free lesson number in each topic:\n` + Object.keys(next).map((t) => `Topic ${t} ${TOPICS[Number(t)]}: ${next[Number(t)]}`).join("\n"));
+  if (body.draft) context.push(`The draft currently in the author's form (JSON). If he asks for changes, change only what he asks and keep its number:\n${JSON.stringify(body.draft)}`);
 
   const messages: Anthropic.Beta.BetaMessageParam[] = history.map((m) => ({ role: m.role, content: m.content }));
-  if (context.length) {
-    // Attach the context to the latest user turn so it is always current.
-    const last = messages[messages.length - 1];
-    last.content = `${last.content}\n\n[Context for you, not written by the author]\n${context.join("\n\n")}`;
-  }
+  const last = messages[messages.length - 1];
+  last.content = `${last.content}\n\n[Context for you, not written by the author]\n${context.join("\n\n")}`;
 
   const client = new Anthropic({ apiKey });
   try {
@@ -195,13 +237,18 @@ Deno.serve(async (req) => {
         const l = block.input as Lesson;
         if (l && typeof l.title === "string" && Array.isArray(l.questions)) {
           l.slug = slugify(l.slug || l.title);
+          const t = Math.min(14, Math.max(1, Number(l.syllabus_topic) || 1));
+          l.syllabus_topic = t;
+          l.topic = TOPICS[t];
+          l.chapter = `Topic ${t} · ${TOPICS[t]}`;
+          if (!/^\d+\.\d+$/.test(l.number || "")) l.number = next[t];
           if (!l.duration && details.duration) l.duration = details.duration;
-          l.questions = l.questions.map((q, i) => ({ ...q, position: i + 1, figure: "" }));
+          l.questions = l.questions.map((q, i) => ({ ...q, kind: q.kind === "video_check" ? "video_check" : "calculation", position: i + 1, figure: "" }));
           lesson = { ...l, video_id: id, status: "draft" };
         }
       }
     }
-    if (!reply && lesson) reply = `I have put a draft of "${lesson.title}" with ${lesson.questions.length} questions in the form. Tell me what to change, or check the answers and save it.`;
+    if (!reply && lesson) reply = `I have put a draft of "${lesson.title}" (lesson ${lesson.number}) with ${lesson.questions.length} questions in the form. Tell me what to change, or check the answers and save it.`;
     if (!reply && !lesson) reply = "Sorry, I did not manage to write anything. Try again or give me a bit more detail.";
     return json({ reply, lesson, usage: response.usage });
   } catch (err) {

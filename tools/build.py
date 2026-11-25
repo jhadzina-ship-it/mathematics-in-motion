@@ -200,7 +200,7 @@ def q(s):
     return "'" + str(s).replace("'", "''") + "'"
 
 LESSON_COLS = ["slug", "number", "title", "topic", "chapter", "status", "video_id", "duration", "level", "hook",
-               "summary", "outcomes", "skills", "theorem", "explanation", "figure", "us_name", "textbook_envision", "textbook_bigideas",
+               "summary", "outcomes", "skills", "theorem", "explanation", "syllabus_topic", "syllabus_subtopic", "syllabus_form", "syllabus_objective", "textbook_ref", "figure", "us_name", "textbook_envision", "textbook_bigideas",
                "textbook_hmh", "standard", "textbook_confirmed"]
 lines = ["-- Generated from content/lessons.json by figures.py. Run after schema.sql.",
          "-- Safe to re-run: lessons are upserted by slug and their questions replaced.", "begin;"]
@@ -208,14 +208,14 @@ for l in lessons:
     vals = []
     for c in LESSON_COLS:
         v = l.get(c, "")
-        vals.append("true" if v is True else "false" if v is False else q(v))
+        vals.append("true" if v is True else "false" if v is False else str(int(v)) if c == "syllabus_topic" else q(v))
     sets = ", ".join(f"{c} = excluded.{c}" for c in LESSON_COLS if c != "slug")
     lines.append(f"insert into public.lessons ({', '.join(LESSON_COLS)}) values ({', '.join(vals)})\n"
                  f"  on conflict (slug) do update set {sets}, updated_at = now();")
     lines.append(f"delete from public.questions where lesson_id = (select id from public.lessons where slug = {q(l['slug'])});")
     for qu in l.get("questions", []):
-        lines.append("insert into public.questions (lesson_id, position, prompt, answer, tolerance, unit, hint, solution, figure)\n"
-                     f"  values ((select id from public.lessons where slug = {q(l['slug'])}), {int(qu.get('position', 1))}, "
+        lines.append("insert into public.questions (lesson_id, position, kind, prompt, answer, tolerance, unit, hint, solution, figure)\n"
+                     f"  values ((select id from public.lessons where slug = {q(l['slug'])}), {int(qu.get('position', 1))}, {q(qu.get('kind', 'calculation'))}, "
                      f"{q(qu.get('prompt'))}, {qu.get('answer')}, {qu.get('tolerance', 0.01)}, {q(qu.get('unit'))}, "
                      f"{q(qu.get('hint'))}, {q(qu.get('solution'))}, {q(qu.get('figure'))});")
 lines.append("commit;")

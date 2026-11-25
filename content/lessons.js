@@ -2,10 +2,10 @@
 window.MIM_LESSONS = [
   {
     "slug": "angle-of-elevation-great-zimbabwe",
-    "number": "8.1",
+    "number": "10.1",
     "title": "Angle of elevation at Great Zimbabwe",
     "topic": "Trigonometry",
-    "chapter": "Chapter 8 · Trigonometry",
+    "chapter": "Topic 10 · Trigonometry",
     "status": "live",
     "video_id": "3gDGAKZOnBY",
     "duration": "2:08",
@@ -17,12 +17,17 @@ window.MIM_LESSONS = [
     "theorem": "The angle of elevation is the angle between the horizontal line of sight and the line from the observer's eye up to the object. In the right-angled triangle it makes, tan θ = opposite ÷ adjacent.",
     "explanation": "Start at the observer's eye and draw a horizontal line. That is the reference line. Now draw the line of sight from the eye up to the object. The angle between the two is the angle of elevation. Drop a vertical from the object to the horizontal line and you have a right-angled triangle: the vertical side (how far the object is above eye level) is opposite the angle, and the horizontal side (how far away the observer stands) is adjacent to it. The tangent ratio links them: tan θ = opposite ÷ adjacent. In the video the Zimbabwe Bird is 10 m above the tourist's eye and he stands 15 m from the wall, so tan θ = 10 ÷ 15 and θ = tan⁻¹(10 ÷ 15) ≈ 33.7°. The measurements are illustrative.",
     "figure": "assets/figures/elevation-theorem.svg",
-    "us_name": "Angles of elevation and depression; solving right triangles with the tangent ratio",
-    "textbook_envision": "Topic 8 Right Triangles and Trigonometry · Trigonometric Ratios",
-    "textbook_bigideas": "Chapter 9 Right Triangles and Trigonometry · The Tangent Ratio",
-    "textbook_hmh": "Right Triangles and Trigonometry unit · Tangent Ratio",
-    "standard": "HSG-SRT.C.8",
+    "us_name": "",
+    "textbook_envision": "",
+    "textbook_bigideas": "",
+    "textbook_hmh": "",
+    "standard": "",
     "textbook_confirmed": false,
+    "syllabus_topic": 10,
+    "syllabus_subtopic": "Trigonometrical ratios",
+    "syllabus_form": "Form 3",
+    "syllabus_objective": "Find sine, cosine and tangent of acute angles; solve problems involving right-angled triangles in two dimensions. Also meets Geometry (Topic 8, Form 3): angles of elevation and depression.",
+    "textbook_ref": "",
     "questions": [
       {
         "position": 1,
@@ -32,7 +37,8 @@ window.MIM_LESSONS = [
         "unit": "°",
         "hint": "Which side is opposite the angle, and which is adjacent? Then tan θ = opposite ÷ adjacent.",
         "solution": "Opposite = 10 m (height above eye level), adjacent = 15 m (distance from the wall). tan θ = 10 ÷ 15 = 0.6667, so θ = tan⁻¹(0.6667) ≈ 33.7°.",
-        "figure": "assets/figures/elevation-q1.svg"
+        "figure": "assets/figures/elevation-q1.svg",
+        "kind": "video_check"
       },
       {
         "position": 2,
@@ -42,7 +48,8 @@ window.MIM_LESSONS = [
         "unit": "°",
         "hint": "Same triangle, new numbers. The height above eye level is opposite; the distance from the wall is adjacent.",
         "solution": "tan θ = 18 ÷ 24 = 0.75, so θ = tan⁻¹(0.75) ≈ 36.9°.",
-        "figure": "assets/figures/elevation-q2.svg"
+        "figure": "assets/figures/elevation-q2.svg",
+        "kind": "calculation"
       },
       {
         "position": 3,
@@ -52,7 +59,8 @@ window.MIM_LESSONS = [
         "unit": "m",
         "hint": "This time you know the angle and the adjacent side. Rearrange tan θ = opposite ÷ adjacent to find the opposite side.",
         "solution": "opposite = adjacent × tan θ = 20 × tan 40° = 20 × 0.8391 ≈ 16.8 m.",
-        "figure": "assets/figures/elevation-q3.svg"
+        "figure": "assets/figures/elevation-q3.svg",
+        "kind": "calculation"
       },
       {
         "position": 4,
@@ -62,7 +70,8 @@ window.MIM_LESSONS = [
         "unit": "m",
         "hint": "The triangle gives the height above the eye. The eye is itself above the ground. Add.",
         "solution": "Height above eye level = 15 × tan 33.7° ≈ 10.0 m. Add the eye height: 10.0 + 1.6 = 11.6 m above the ground.",
-        "figure": "assets/figures/elevation-q4.svg"
+        "figure": "assets/figures/elevation-q4.svg",
+        "kind": "calculation"
       },
       {
         "position": 5,
@@ -72,33 +81,39 @@ window.MIM_LESSONS = [
         "unit": "°",
         "hint": "What is tan θ when the opposite and adjacent sides are equal?",
         "solution": "tan θ = 10 ÷ 10 = 1, and the angle whose tangent is 1 is 45°. Walking closer makes the angle of elevation larger.",
-        "figure": "assets/figures/elevation-q5.svg"
+        "figure": "assets/figures/elevation-q5.svg",
+        "kind": "calculation"
       }
     ]
   },
   {
     "slug": "alternate-segment-theorem",
-    "number": "7.5",
+    "number": "8.5",
     "title": "The alternate segment theorem",
-    "topic": "Circles",
-    "chapter": "Chapter 7 · Circles",
+    "topic": "Geometry",
+    "chapter": "Topic 8 · Geometry",
     "status": "live",
     "video_id": "",
     "duration": "0:50",
     "level": "Forms 3 and 4",
     "hook": "Draw a tangent to a circle. Draw a chord from the same point. The angle between them is hiding somewhere else on the circle. Watch where.",
     "summary": "The angle between a tangent and a chord equals the angle in the alternate segment. A 50-second animation, then four questions.",
-    "outcomes": "State the alternate segment theorem\nSpot the alternate segment for a given tangent and chord\nFind missing angles using the theorem together with angles on a straight line and in a triangle\nRecognise the same result as the tangent-chord angle in US textbooks",
+    "outcomes": "State the alternate segment theorem\nSpot the alternate segment for a given tangent and chord\nFind missing angles using the theorem together with angles on a straight line and in a triangle",
     "skills": "Circle theorems, Tangents and chords, Inscribed angles, Angle chasing, Geometric reasoning",
     "theorem": "The angle between a tangent and a chord at the point of contact is equal to the angle in the alternate segment.",
-    "explanation": "The tangent PQ touches the circle at A. The chord AB cuts the circle into two segments. The angle between AQ and AB equals angle ACB, where C is any point on the arc on the other side of the chord. Why: angle ACB is an inscribed angle, so it is half the arc AB. The tangent-chord angle at A is also half the arc AB, because a tangent is the limit of a chord through A. Two halves of the same arc are equal. US textbooks state the same result as: the measure of the angle formed by a tangent and a chord is half the measure of the intercepted arc.",
+    "explanation": "The tangent PQ touches the circle at A. The chord AB cuts the circle into two segments. The angle between AQ and AB equals angle ACB, where C is any point on the arc on the other side of the chord. Why: angle ACB is an inscribed angle, so it is half the arc AB. The tangent-chord angle at A is also half the arc AB, because a tangent is the limit of a chord through A. Two halves of the same arc are equal.",
     "figure": "assets/figures/segment-theorem.svg",
-    "us_name": "Angle formed by a tangent and a chord is half the intercepted arc",
-    "textbook_envision": "Topic 10 Circles · Secants, Tangents and Angle Measures",
-    "textbook_bigideas": "Chapter 10 Circles · Angle Relationships in Circles",
-    "textbook_hmh": "Circles unit · Angles and Segments in Circles",
-    "standard": "HSG-C.A.2",
+    "us_name": "",
+    "textbook_envision": "",
+    "textbook_bigideas": "",
+    "textbook_hmh": "",
+    "standard": "",
     "textbook_confirmed": false,
+    "syllabus_topic": 8,
+    "syllabus_subtopic": "Polygons: circle theorems",
+    "syllabus_form": "Form 4",
+    "syllabus_objective": "Calculate angles using circle theorems, including the angle in the alternate segment and the tangent and radius.",
+    "textbook_ref": "",
     "questions": [
       {
         "position": 1,
@@ -108,7 +123,8 @@ window.MIM_LESSONS = [
         "unit": "°",
         "hint": "Which angle sits in the segment on the other side of chord AB?",
         "solution": "The tangent AQ and the chord AB meet at A with an angle of 58°. By the alternate segment theorem, the angle in the alternate segment is equal to it. Angle ACB stands in that segment, so x = 58°.",
-        "figure": "assets/figures/segment-q1.svg"
+        "figure": "assets/figures/segment-q1.svg",
+        "kind": "video_check"
       },
       {
         "position": 2,
@@ -118,7 +134,8 @@ window.MIM_LESSONS = [
         "unit": "°",
         "hint": "The theorem works in both directions: the angle in the alternate segment tells you the tangent-chord angle.",
         "solution": "Angle ACB is in the segment on the opposite side of chord AB from the tangent AQ, so it is the angle in the alternate segment. By the theorem it equals the tangent-chord angle. y = 41°.",
-        "figure": "assets/figures/segment-q2.svg"
+        "figure": "assets/figures/segment-q2.svg",
+        "kind": "calculation"
       },
       {
         "position": 3,
@@ -128,7 +145,8 @@ window.MIM_LESSONS = [
         "unit": "°",
         "hint": "PAQ is a straight line. What do the three angles at A add up to?",
         "solution": "PAQ is a straight line, so the angles at A add to 180°. z = 180° − 65° − 47° = 68°. Bonus: the theorem gives the other two angles for free. Angle ACB = angle PAB = 65° and angle ABC = angle QAC = 47°. Check: 68 + 65 + 47 = 180.",
-        "figure": "assets/figures/segment-q3.svg"
+        "figure": "assets/figures/segment-q3.svg",
+        "kind": "calculation"
       },
       {
         "position": 4,
@@ -138,16 +156,17 @@ window.MIM_LESSONS = [
         "unit": "°",
         "hint": "First use the theorem to find angle ACB. Then use the angle sum of triangle ABC.",
         "solution": "By the alternate segment theorem, angle ACB equals the angle between the tangent AQ and the chord AB, so angle ACB = 52°. In triangle ABC the angles add to 180°: w = 180° − 52° − 73° = 55°.",
-        "figure": "assets/figures/segment-q4.svg"
+        "figure": "assets/figures/segment-q4.svg",
+        "kind": "calculation"
       }
     ]
   },
   {
     "slug": "angle-at-the-centre",
-    "number": "7.1",
+    "number": "8.1",
     "title": "Angle at the centre",
-    "topic": "Circles",
-    "chapter": "Chapter 7 · Circles",
+    "topic": "Geometry",
+    "chapter": "Topic 8 · Geometry",
     "status": "planned",
     "video_id": "",
     "duration": "",
@@ -159,20 +178,25 @@ window.MIM_LESSONS = [
     "theorem": "",
     "explanation": "",
     "figure": "",
-    "us_name": "Inscribed angle is half the central angle (Inscribed Angle Theorem)",
-    "textbook_envision": "Topic 10 · Inscribed Angles",
-    "textbook_bigideas": "Chapter 10 · Inscribed Angles and Polygons",
-    "textbook_hmh": "Circles unit · Inscribed Angles",
-    "standard": "HSG-C.A.2",
+    "us_name": "",
+    "textbook_envision": "",
+    "textbook_bigideas": "",
+    "textbook_hmh": "",
+    "standard": "",
     "textbook_confirmed": false,
+    "syllabus_topic": 8,
+    "syllabus_subtopic": "Polygons: circle theorems",
+    "syllabus_form": "Form 3",
+    "syllabus_objective": "Calculate angles using circle theorems: angle subtended at the centre and on the circumference.",
+    "textbook_ref": "",
     "questions": []
   },
   {
     "slug": "angles-in-the-same-segment",
-    "number": "7.2",
+    "number": "8.2",
     "title": "Angles in the same segment",
-    "topic": "Circles",
-    "chapter": "Chapter 7 · Circles",
+    "topic": "Geometry",
+    "chapter": "Topic 8 · Geometry",
     "status": "planned",
     "video_id": "",
     "duration": "",
@@ -184,20 +208,25 @@ window.MIM_LESSONS = [
     "theorem": "",
     "explanation": "",
     "figure": "",
-    "us_name": "Inscribed angles on the same arc are congruent",
-    "textbook_envision": "Topic 10 · Inscribed Angles",
-    "textbook_bigideas": "Chapter 10 · Inscribed Angles and Polygons",
-    "textbook_hmh": "Circles unit · Inscribed Angles",
-    "standard": "HSG-C.A.2",
+    "us_name": "",
+    "textbook_envision": "",
+    "textbook_bigideas": "",
+    "textbook_hmh": "",
+    "standard": "",
     "textbook_confirmed": false,
+    "syllabus_topic": 8,
+    "syllabus_subtopic": "Polygons: circle theorems",
+    "syllabus_form": "Form 3",
+    "syllabus_objective": "Calculate angles using circle theorems: angles in the same segment.",
+    "textbook_ref": "",
     "questions": []
   },
   {
     "slug": "cyclic-quadrilaterals",
-    "number": "7.4",
+    "number": "8.4",
     "title": "Cyclic quadrilaterals",
-    "topic": "Circles",
-    "chapter": "Chapter 7 · Circles",
+    "topic": "Geometry",
+    "chapter": "Topic 8 · Geometry",
     "status": "planned",
     "video_id": "",
     "duration": "",
@@ -209,20 +238,25 @@ window.MIM_LESSONS = [
     "theorem": "",
     "explanation": "",
     "figure": "",
-    "us_name": "Opposite angles of an inscribed quadrilateral are supplementary",
-    "textbook_envision": "Topic 10 · Inscribed Angles",
-    "textbook_bigideas": "Chapter 10 · Inscribed Angles and Polygons",
-    "textbook_hmh": "Circles unit · Inscribed Angles",
-    "standard": "HSG-C.A.3",
+    "us_name": "",
+    "textbook_envision": "",
+    "textbook_bigideas": "",
+    "textbook_hmh": "",
+    "standard": "",
     "textbook_confirmed": false,
+    "syllabus_topic": 8,
+    "syllabus_subtopic": "Polygons: circle theorems",
+    "syllabus_form": "Form 4",
+    "syllabus_objective": "Calculate angles using circle theorems: cyclic quadrilateral.",
+    "textbook_ref": "",
     "questions": []
   },
   {
     "slug": "angle-of-depression",
-    "number": "8.2",
+    "number": "10.2",
     "title": "Angle of depression",
     "topic": "Trigonometry",
-    "chapter": "Chapter 8 · Trigonometry",
+    "chapter": "Topic 10 · Trigonometry",
     "status": "planned",
     "video_id": "",
     "duration": "",
@@ -234,12 +268,17 @@ window.MIM_LESSONS = [
     "theorem": "",
     "explanation": "",
     "figure": "",
-    "us_name": "Angles of depression; alternate interior angles",
-    "textbook_envision": "Topic 8 Right Triangles and Trigonometry",
-    "textbook_bigideas": "Chapter 9 Right Triangles and Trigonometry",
-    "textbook_hmh": "Right Triangles and Trigonometry unit",
-    "standard": "HSG-SRT.C.8",
+    "us_name": "",
+    "textbook_envision": "",
+    "textbook_bigideas": "",
+    "textbook_hmh": "",
+    "standard": "",
     "textbook_confirmed": false,
+    "syllabus_topic": 10,
+    "syllabus_subtopic": "Trigonometrical ratios",
+    "syllabus_form": "Form 3",
+    "syllabus_objective": "Solve problems involving right-angled triangles in two dimensions, including angles of depression (Geometry, Topic 8, Form 3).",
+    "textbook_ref": "",
     "questions": []
   }
 ];

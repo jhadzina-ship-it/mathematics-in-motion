@@ -91,8 +91,15 @@
       }
       button.addEventListener('click', check);
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); check(); } });
+      q._setCorrect = function () {
+        feedback.classList.add('show', 'ok'); feedback.classList.remove('no');
+        feedback.textContent = 'Correct (working marked).';
+        input.disabled = true; button.disabled = true; answered[i] = true; updateScore();
+      };
     });
     if (questions.length) updateScore();
+    // Lets the marking step count a question as correct.
+    return { setCorrect: function (index) { var q = questions[index]; if (q && q._setCorrect) q._setCorrect(); } };
   };
   window.MIM_mountQuestions();
 })();

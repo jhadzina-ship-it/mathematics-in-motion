@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Syllabus · Mathematics in Motion</title>
+  <meta name="description" content="How the lessons map to the Zimbabwe O-Level Mathematics Syllabus B (Forms 1 to 4, 2024 to 2030).">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .topic { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 14px; background: #fff; }
+    .topic h2 { font-size: 1.2rem; margin-bottom: 6px; }
+    .forms { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+    @media (max-width: 640px) { .forms { grid-template-columns: 1fr; } }
+    .forms h4 { margin: 0 0 4px; font-size: .9rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: .05em; }
+    .forms ul { margin: 0; padding-left: 18px; font-size: .92rem; }
+    .forms li strong { font-weight: 600; }
+    .lessons-in { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  </style>
+</head>
+<body>
+  <!--HEADER-->
+  <!--/HEADER-->
+
+  <main>
+    <div class="wrap crumbs"><a href="index.html">Home</a><span class="sep">›</span><span>Syllabus</span></div>
+    <div class="wrap page-head">
+      <div class="eyebrow">For teachers and parents</div>
+      <h1>Where each lesson sits in the syllabus</h1>
+      <p class="lead">The site follows the Zimbabwe O-Level <strong>Mathematics Syllabus B, Forms 1 to 4 (2024 to 2030)</strong> from the Ministry of Primary and Secondary Education with ZIMSEC. Lessons are numbered by syllabus topic, so lesson 10.2 is the second lesson in Topic 10, Trigonometry, and lessons in a topic are taken in order.</p>
+    </div>
+    <section style="padding-top:8px"><div class="wrap" id="topics"><p class="muted">Loading…</p></div></section>
+    <section><div class="wrap"><div class="callout"><strong>US classrooms.</strong> The same results appear in enVision Geometry, Big Ideas Math Geometry and HMH Into Geometry under different names; the circle theorems sit in the circles chapter and angles of elevation in right-triangle trigonometry. Ask the author for the mapping if you teach from those books.</div></div></section>
+  </main>
+
+  <!--FOOTER-->
+  <!--/FOOTER-->
+  <script src="assets/config.js"></script>
+  <script src="content/lessons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    Promise.all([MIM.loadLessons(), fetch('content/syllabus-b.json').then(function (r) { return r.json(); })]).then(function (res) {
+      var esc = MIM.esc, lessons = res[0], syl = res[1];
+      document.getElementById('topics').innerHTML = syl.topics.map(function (t) {
+        var mine = lessons.filter(function (l) { return l.syllabus_topic === t.number && l.status !== 'draft'; });
+        function formList(f) {
+          var items = [];
+          t.subtopics.forEach(function (s) { if (s.forms[f]) items.push('<li><strong>' + esc(s.name) + ':</strong> ' + s.forms[f].map(esc).join(', ') + '</li>'); });
+          return items.length ? '<ul>' + items.join('') + '</ul>' : '<p class="muted small" style="margin:0">Nothing new at this level.</p>';
+        }
+        return '<div class="topic" id="topic-' + t.number + '"><h2>Topic ' + t.number + ' · ' + esc(t.name) + '</h2>' +
+          (mine.length ? '<div class="lessons-in">' + mine.map(function (l) { return l.status === 'live' ? '<a class="chip" href="lesson.html?id=' + encodeURIComponent(l.slug) + '">' + esc(l.number) + ' ' + esc(l.title) + '</a>' : '<span class="chip" style="opacity:.6">' + esc(l.number) + ' ' + esc(l.title) + ' (coming)</span>'; }).join('') + '</div>' : '<p class="muted small" style="margin:4px 0 0">No lessons on this topic yet.</p>') +
+          '<div class="forms"><div><h4>Form 3</h4>' + formList('3') + '</div><div><h4>Form 4</h4>' + formList('4') + '</div></div></div>';
+      }).join('');
+    });
+  </script>
+</body>
+</html>

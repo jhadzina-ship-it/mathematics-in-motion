@@ -36,6 +36,13 @@ create table if not exists public.lessons (
 -- Columns added after the first release (no-ops on a fresh database).
 alter table public.lessons add column if not exists outcomes text not null default '';
 alter table public.lessons add column if not exists skills   text not null default '';
+-- Zimbabwe O-Level alignment (MoPSE/ZIMSEC Mathematics Syllabus B, Forms 1-4, 2024-2030)
+alter table public.lessons add column if not exists syllabus_topic    integer not null default 0;   -- topic number 1-14 in Syllabus B
+alter table public.lessons add column if not exists syllabus_subtopic text not null default '';   -- e.g. 'Trigonometrical ratios'
+alter table public.lessons add column if not exists syllabus_form     text not null default '';   -- 'Form 3' or 'Form 4'
+alter table public.lessons add column if not exists syllabus_objective text not null default '';  -- the learning objective the lesson meets, in the syllabus's words
+alter table public.lessons add column if not exists textbook_ref      text not null default '';   -- Zimbabwean textbook chapter, e.g. 'New General Mathematics Book 3, Ch 12'
+alter table public.questions add column if not exists kind text not null default 'calculation'; -- 'calculation' or 'video_check'
 
 -- Practice questions, several per lesson. Deleting a lesson deletes its questions.
 create table if not exists public.questions (

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tests · Mathematics in Motion</title>
+  <meta name="description" content="A short test on one syllabus topic, marked with a report that shows which lessons to revisit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .topic-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .topic-pick button { text-align: left; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; font: inherit; cursor: pointer; }
+    .topic-pick button:hover { box-shadow: var(--shadow); border-color: var(--blue); }
+    .topic-pick button[disabled] { opacity: .55; cursor: default; }
+    .report { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-top: 20px; }
+    .weak { border-left: 4px solid var(--amber); padding: 10px 14px; margin: 10px 0; background: var(--warn-soft); border-radius: 0 8px 8px 0; }
+    .working textarea { width: 100%; min-height: 70px; font: inherit; padding: 10px 12px; border: 1px solid var(--ink-3); border-radius: 8px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <!--HEADER-->
+  <!--/HEADER-->
+
+  <main>
+    <div class="wrap crumbs"><a href="index.html">Home</a><span class="sep">›</span><span>Tests</span></div>
+    <div class="wrap page-head">
+      <h1>Test yourself on a topic</h1>
+      <p class="lead">Pick a topic. You get a short test built from its lessons, with new numbers. After marking, the report tells you which lessons to go back to.</p>
+    </div>
+    <section style="padding-top:8px"><div class="wrap" id="stage"><p class="muted">Loading…</p></div></section>
+  </main>
+
+  <!--FOOTER-->
+  <!--/FOOTER-->
+  <script src="assets/config.js"></script>
+  <script src="content/lessons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/site.js"></script>
+  <script src="assets/help.js"></script>
+  <script>
+  (function () {
+    var esc = MIM.esc, stage = document.getElementById('stage');
+    var all = [], test = null;
+
+    function pick() {
+      var topics = {};
+      all.forEach(function (l) { if (l.status === 'live' && l.syllabus_topic) { var t = topics[l.syllabus_topic] = topics[l.syllabus_topic] || { number: l.syllabus_topic, name: l.topic, lessons: [] }; t.lessons.push(l); } });
+      var keys = Object.keys(topics).sort(function (a, b) { return a - b; });
+      var last = null; try { last = JSON.parse(localStorage.getItem('mim-last-test') || 'null'); } catch (e) {}
+      stage.innerHTML = '<div class="topic-pick">' + keys.map(function (k) {
+        var t = topics[k], ready = t.lessons.filter(function (l) { return MIM.lessonDone(l); }).length;
+        return '<button type="button" data-topic="' + k + '"' + (MIM.connected ? '' : ' disabled') + '><strong>Topic ' + k + ' · ' + esc(t.name) + '</strong><br><span class="muted small">' + t.lessons.length + ' lesson' + (t.lessons.length === 1 ? '' : 's') + ' · you have completed ' + ready + '</span></button>';
+      }).join('') + '</div>' + (keys.length ? '' : '<p class="muted">No topics with lessons yet.</p>') +
+        (MIM.connected ? '' : '<p class="muted small" style="margin-top:12px">Tests need the assistant, which is not connected on this copy of the site.</p>') +
+        (last ? '<div class="report"><h3>Your last report</h3>' + reportHtml(last) + '</div>' : '');
+      stage.querySelectorAll('[data-topic]').forEach(function (b) { b.addEventListener('click', function () { build(topics[b.getAttribute('data-topic')]); }); });
+    }
+
+    function build(t) {
+      stage.innerHTML = '<p class="muted">Building your test on Topic ' + t.number + ' · ' + esc(t.name) + '… about a minute.</p>';
+      MIM.assist({ mode: 'test', topic: { number: t.number, name: t.name }, count: Math.min(10, Math.max(4, t.lessons.length * 2)),
+        lessons: t.lessons.map(function (l) { return { number: l.number, title: l.title, slug: l.slug, theorem: l.theorem, outcomes: l.outcomes, questions: (l.questions || []).map(function (q) { return { prompt: q.prompt, answer: q.answer, unit: q.unit }; }) }; }) })
+        .then(function (r) { test = { topic: { number: t.number, name: t.name }, questions: r.questions }; show(); })
+        .catch(function (e) { stage.innerHTML = '<p class="muted">' + esc(e.message) + '</p><p><a href="test.html">Back</a></p>'; });
+    }
+
+    function show() {
+      stage.innerHTML = '<div class="quiz-head"><h2 style="margin:0 0 4px">Topic ' + test.topic.number + ' · ' + esc(test.topic.name) + '</h2><span class="muted small">' + test.questions.length + ' questions · type the final answer; working is optional but helps the report.</span></div>' +
+        test.questions.map(function (q, i) {
+          var unit = q.unit === '°' ? '°' : (q.unit ? ' ' + esc(q.unit) : '');
+          return '<div class="question" data-index="' + i + '"><span class="points">1 point</span><div class="eyebrow">Question ' + (i + 1) + ' · ' + esc(q.lesson) + '</div><p>' + esc(q.prompt) + '</p>' +
+            '<div class="answer-row"><label class="sr-only" for="t' + i + '">Answer</label><input id="t' + i + '" inputmode="decimal" placeholder="?">' + unit + '</div>' +
+            '<div class="working"><textarea placeholder="Your working (optional)"></textarea></div></div>';
+        }).join('') +
+        '<div class="btn-row"><button class="btn btn-primary" type="button" id="mark">Mark my test</button><a class="btn btn-ghost" href="test.html">Cancel</a></div>';
+      document.getElementById('mark').addEventListener('click', mark);
+    }
+
+    function mark() {
+      var answers = test.questions.map(function (q, i) {
+        var raw = (document.getElementById('t' + i).value || '').replace(/[^0-9.+-]/g, '');
+        var v = parseFloat(raw), ok = raw !== '' && Math.abs(v - q.answer) <= (q.tolerance == null ? 0.01 : q.tolerance);
+        return { answer: raw, correct: ok, working: document.querySelector('[data-index="' + i + '"] textarea').value.trim() };
+      });
+      document.getElementById('mark').disabled = true; document.getElementById('mark').textContent = 'Marking… about 30 seconds';
+      MIM.assist({ mode: 'report', test: test, answers: answers })
+        .then(function (r) {
+          r.topic = test.topic; r.when = new Date().toISOString();
+          try { localStorage.setItem('mim-last-test', JSON.stringify(r)); } catch (e) {}
+          stage.innerHTML = '<div class="report"><h2>Your report</h2>' + reportHtml(r) + '</div>' +
+            '<details style="margin-top:16px"><summary class="help" style="cursor:pointer;font-weight:600;color:var(--blue)">Show the worked solutions</summary>' +
+            test.questions.map(function (q, i) { return '<div class="question" style="margin-top:10px"><div class="eyebrow">Question ' + (i + 1) + ' · ' + (answers[i].correct ? 'right' : 'wrong') + '</div><p>' + esc(q.prompt) + '</p><p class="small"><strong>Answer:</strong> ' + esc(q.answer) + esc(q.unit || '') + '. ' + esc(q.solution) + '</p></div>'; }).join('') + '</details>' +
+            '<div class="btn-row"><a class="btn btn-primary" href="test.html">Another test</a></div>';
+          window.scrollTo(0, 0);
+        })
+        .catch(function (e) { document.getElementById('mark').disabled = false; document.getElementById('mark').textContent = 'Mark my test'; alert(e.message); });
+    }
+
+    function reportHtml(r) {
+      return '<p class="muted small">Topic ' + esc(r.topic.number) + ' · ' + esc(r.topic.name) + (r.when ? ' · ' + new Date(r.when).toLocaleDateString() : '') + '</p>' +
+        '<p><span class="pct" style="font-size:2rem;font-weight:700;color:var(--blue)">' + r.score + '/' + r.total + '</span></p><p>' + esc(r.summary) + '</p>' +
+        ((r.strengths || []).length ? '<p><strong>Going well:</strong> ' + r.strengths.map(esc).join('; ') + '</p>' : '') +
+        ((r.weak_areas || []).length ? '<h3 style="margin-top:14px">Go back to</h3>' + r.weak_areas.map(function (w) { return '<div class="weak"><strong><a href="lesson.html?id=' + encodeURIComponent(w.lesson_slug) + '&item=video">' + esc(w.lesson) + '</a></strong><br>' + esc(w.what) + '<br><span class="muted small">' + esc(w.advice) + '</span></div>'; }).join('') : '<p class="muted">Nothing to go back to. Try the next topic.</p>');
+    }
+
+    MIM.loadLessons().then(function (list) { all = list; pick(); });
+  })();
+  </script>
+</body>
+</html>
