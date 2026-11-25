@@ -179,46 +179,57 @@
     return row;
   }
 
-  // ---------- generate with AI (calls the generate-lesson Edge Function)
-  function generate(payload, label) {
-    var btns = [$('ai-generate'), $('ai-refine')];
-    btns.forEach(function (b) { b.disabled = true; });
-    status('ai-status', label + ' This takes about a minute…', true);
-    $('ai-status').classList.remove('ok'); // neutral while waiting
-    return sb.functions.invoke('generate-lesson', { body: payload })
+  // ---------- chat with the assistant (generate-lesson Edge Function)
+  var chat = [];
+  function addMsg(role, text) {
+    var d = document.createElement('div'); d.className = 'msg ' + role; d.textContent = text;
+    $('chat-log').appendChild(d); $('chat-log').scrollTop = 1e9; return d;
+  }
+  function greet() {
+    $('chat-log').innerHTML = ''; chat = [];
+    addMsg('bot', 'Hi Jephias. Tell me about the lesson you want to post and paste the YouTube link. I will ask if I need anything else, then put a draft in the form below for you to check.');
+  }
+  function applyDraft(lesson) {
+    var existing = lessons.filter(function (l) { return l.slug === lesson.slug; })[0];
+    lesson.id = existing ? existing.id : ($('f-slug').value === lesson.slug ? $('f-id').value : '');
+    lesson.figure = $('f-slug').value === lesson.slug ? ($('f-figure').value || '') : '';
+    lesson.textbook_confirmed = false;
+    lesson.questions = (lesson.questions || []).map(function (q, i) { q.position = i + 1; q.figure = q.figure || ''; return q; });
+    edit(lesson);
+    status('ai-status', 'Draft is in the form. Check every answer, then Save lesson.', true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function send() {
+    var text = $('chat-input').value.trim();
+    if (!text) return;
+    $('chat-input').value = '';
+    addMsg('me', text);
+    chat.push({ role: 'user', content: text });
+    var draft = $('f-title').value.trim() ? collect() : null;
+    var payload = { messages: chat, draft: draft, script: $('ai-script').value.trim(),
+      existing: lessons.map(function (l) { return { number: l.number, title: l.title, chapter: l.chapter }; }) };
+    $('chat-send').disabled = true;
+    var waiting = addMsg('sys', 'Thinking… a full draft takes about a minute.');
+    sb.functions.invoke('generate-lesson', { body: payload })
       .then(function (r) {
         if (r.error) {
-          // The function returns a JSON error body; surface it.
           var p = r.error.context && r.error.context.json ? r.error.context.json() : Promise.resolve(null);
-          return p.then(function (j) { throw new Error((j && j.error) || r.error.message || 'Request failed'); }, function () { throw new Error(r.error.message || 'Request failed'); });
+          return p.then(function (jj) { throw new Error((jj && jj.error) || r.error.message || 'Request failed'); }, function () { throw new Error(r.error.message || 'Request failed'); });
         }
         if (r.data && r.data.error) throw new Error(r.data.error);
-        var lesson = r.data.lesson;
-        // Keep the id of the lesson being edited when the slug matches an existing one.
-        var existing = lessons.filter(function (l) { return l.slug === lesson.slug; })[0];
-        lesson.id = existing ? existing.id : '';
-        lesson.figure = (payload.draft && payload.draft.figure) || '';
-        lesson.textbook_confirmed = false;
-        lesson.questions = (lesson.questions || []).map(function (q, i) { q.position = i + 1; q.figure = q.figure || ''; return q; });
-        edit(lesson);
-        status('ai-status', 'Draft ready below. Check every answer, then Save lesson.', true);
+        waiting.remove();
+        addMsg('bot', r.data.reply);
+        chat.push({ role: 'assistant', content: r.data.reply + (r.data.lesson ? '
+[Draft "' + r.data.lesson.title + '" with ' + r.data.lesson.questions.length + ' questions placed in the form]' : '') });
+        if (r.data.lesson) applyDraft(r.data.lesson);
       })
-      .catch(function (err) { status('ai-status', (err && err.message) || String(err), false); })
-      .then(function () { btns.forEach(function (b) { b.disabled = false; }); });
+      .catch(function (err) { waiting.remove(); addMsg('sys', 'Something went wrong: ' + ((err && err.message) || err)); chat.pop(); })
+      .then(function () { $('chat-send').disabled = false; $('chat-input').focus(); });
   }
-  $('ai-generate').addEventListener('click', function () {
-    var video = $('ai-video').value.trim(), prompt = $('ai-prompt').value.trim();
-    if (!video && !prompt) { status('ai-status', 'Paste a YouTube link or say what you want.', false); return; }
-    if (video && !videoId(video)) { status('ai-status', 'That does not look like a YouTube link.', false); return; }
-    generate({ video_url: video, prompt: prompt, script: $('ai-script').value.trim(), draft: null }, 'Writing the lesson.');
-  });
-  $('ai-refine').addEventListener('click', function () {
-    var prompt = $('ai-prompt').value.trim();
-    if (!prompt) { status('ai-status', 'Type the change you want in "What do you want?" first.', false); return; }
-    var draft = collect();
-    if (!draft.title) { status('ai-status', 'There is no lesson in the form to refine. Generate one or pick one from the list.', false); return; }
-    generate({ video_url: $('ai-video').value.trim() || ($('f-video').value || ''), prompt: prompt, script: $('ai-script').value.trim(), draft: draft }, 'Applying your change.');
-  });
+  $('chat-send').addEventListener('click', send);
+  $('chat-input').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+  $('chat-reset').addEventListener('click', greet);
+  greet();
 
   // ---------- save / delete
   $('lesson-form').addEventListener('submit', function (e) {

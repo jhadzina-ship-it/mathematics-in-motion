@@ -109,18 +109,19 @@
           <div>
           <div class="card" id="ai-panel" style="margin-bottom:20px;border-color:var(--blue)">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-              <h3 style="margin:0">Generate with AI</h3>
+              <h3 style="margin:0">Post with the assistant</h3>
               <span class="pill">Draft only · you review before it goes live</span>
             </div>
-            <p class="help" style="margin-top:6px">Paste the video link and say what you want in plain words. The draft fills the form below; edit anything, then Save.</p>
-            <label for="ai-video">YouTube link</label><input id="ai-video" type="text" placeholder="https://youtu.be/…">
-            <label for="ai-prompt">What do you want?</label><textarea id="ai-prompt" placeholder="Form 3 lesson on angle of elevation. Five questions set at Great Zimbabwe, answers to 1 decimal place, one about walking closer to the wall."></textarea>
-            <details style="margin-top:10px"><summary class="help" style="cursor:pointer">Paste your script or transcript (optional, makes the questions match the video)</summary><textarea id="ai-script" style="margin-top:6px" placeholder="The words spoken in the video…"></textarea></details>
-            <div class="status" id="ai-status"></div>
-            <div class="btn-row">
-              <button class="btn btn-primary" type="button" id="ai-generate">Generate draft</button>
-              <button class="btn btn-ghost" type="button" id="ai-refine" title="Applies your instruction to the lesson currently in the form">Refine the form below with this instruction</button>
+            <p class="help" style="margin-top:6px">Say what you want to post, in your own words, and paste the YouTube link. The assistant asks for anything it still needs, then puts a draft in the form below for you to check and save.</p>
+            <div id="chat-log" class="chat-log" aria-live="polite"></div>
+            <div class="answer-row" style="align-items:stretch">
+              <label class="sr-only" for="chat-input">Message</label>
+              <textarea id="chat-input" placeholder="e.g. New video https://youtu.be/… on angle of elevation, Form 3, five questions set at Victoria Falls" style="flex:1;min-width:200px;min-height:56px"></textarea>
+              <button class="btn btn-primary" type="button" id="chat-send">Send</button>
             </div>
+            <details style="margin-top:8px"><summary class="help" style="cursor:pointer">Attach your script or transcript (optional, makes the questions match the video)</summary><textarea id="ai-script" style="margin-top:6px" placeholder="The words spoken in the video…"></textarea></details>
+            <div class="status" id="ai-status"></div>
+            <div style="margin-top:10px"><button class="btn btn-ghost btn-sm" type="button" id="chat-reset">Start a new conversation</button></div>
           </div>
 
           <form id="lesson-form" class="card" autocomplete="off">
