@@ -160,8 +160,6 @@
       tree.querySelectorAll('details.branch').forEach(function (d) { openTopics[d.getAttribute('data-topic')] = d.open; });
     }
     if (activeTopic) openTopics[activeTopic] = true;
-    var panel = panelEl;
-    if (panel.parentNode) panel.parentNode.removeChild(panel); // keep the panel alive while the tree is rebuilt
 
     var taken = {}; ownTopics.forEach(function (x) { taken[x.number] = true; });
     var menu = syllabus.filter(function (x) { return !taken[x.number]; }).map(function (x) { return '<option value="' + x.number + '">Topic ' + x.number + ' · ' + esc(x.name) + ' (syllabus)</option>'; }).join('') + '<option value="own">My own topic (not in the syllabus)</option>';
@@ -220,6 +218,7 @@
     var el = $('steps'); if (!el) return;
     var step = !ownTopics.length ? 1 : !lessons.length ? 2 : (current && current.id ? 3 : (draftReady ? 3 : 2));
     var items = [['Add a topic', 'Pick one from the syllabus or name your own.'], ['Add a subtopic', 'Open the topic, paste your video link, tell the assistant what it covers.'], ['Check and post', 'Read the draft, check the answers, press Post as Live.']];
+    if ($('cv-step')) $('cv-step').textContent = 'Step ' + Math.max(2, step) + ' · ' + items[Math.max(2, step) - 1][0];
     el.innerHTML = items.map(function (s, i) {
       var n = i + 1, cls = n < step ? 'done' : n === step ? 'now' : '';
       return '<div class="sstep ' + cls + '"><span class="s-num">' + (n < step ? '✓' : n) + '</span><div><strong>' + s[0] + '</strong><span>' + s[1] + '</span></div></div>';
@@ -262,11 +261,16 @@
     });
   }
   // Put the post panel inside the active branch (or hide it).
+  // One view at a time: the topics tree, or the chat for the topic being worked on.
   function mountPanel() {
-    var panel = panelEl;
-    var slot = activeTopic ? document.querySelector('.slot[data-slot="' + activeTopic + '"]') : null;
-    if (slot) { slot.appendChild(panel); panel.classList.remove('hidden'); }
-    else { $('tree').parentNode.appendChild(panel); panel.classList.add('hidden'); }
+    var inChat = !!activeTopic;
+    panelEl.classList.toggle('hidden', !inChat);
+    $('topics-view').classList.toggle('hidden', inChat);
+    document.querySelector('.hero').classList.toggle('hidden', inChat);
+  }
+  function scrollChatToEnd() {
+    if (!activeTopic) return;
+    window.requestAnimationFrame(function () { window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); });
   }
   // Open a branch for posting: a new subtopic (lesson null) or an existing one.
   function openTopic(n, lesson) {
@@ -284,7 +288,7 @@
       greet(n);
     }
     renderTree();
-    window.scrollTo({ top: panelEl.offsetTop - 80, behavior: 'smooth' });
+    window.scrollTo({ top: 0 });
     if (!lesson) $('chat-input').focus();
   }
   $('panel-close').addEventListener('click', function () { activeTopic = 0; current = null; draftReady = false; renderTree(); });
@@ -332,7 +336,7 @@
     $('panel-topic').textContent = 'Topic ' + activeTopic + ' · ' + (tp ? tp.name : '');
     $('panel-title').textContent = (l.id ? 'Subtopic ' : 'New subtopic ') + (l.number || '') + (l.title ? ': ' + l.title : '');
     renderTree();
-    if (!quiet) window.scrollTo({ top: $('draft-card').offsetTop - 80, behavior: 'smooth' });
+    if (!quiet) window.scrollTo({ top: $('draft-card').offsetTop - 130, behavior: 'smooth' });
   }
 
   function clearForm() {
@@ -383,12 +387,12 @@
   $('toggle-form').addEventListener('click', function () {
     var open = $('lesson-form').classList.contains('hidden');
     show('lesson-form', open);
-    if (open) window.scrollTo({ top: $('lesson-form').offsetTop - 80, behavior: 'smooth' });
+    if (open) window.scrollTo({ top: $('lesson-form').offsetTop - 130, behavior: 'smooth' });
   });
   $('close-form').addEventListener('click', function () {
     show('lesson-form', false);
     renderPreview();
-    window.scrollTo({ top: $('draft-card').offsetTop - 80, behavior: 'smooth' });
+    window.scrollTo({ top: $('draft-card').offsetTop - 130, behavior: 'smooth' });
   });
 
   // ---------- questions (inside the hidden form)
@@ -530,7 +534,7 @@
   $('post-live').addEventListener('click', function () { save('live').catch(swallow); });
   $('save-draft').addEventListener('click', function () { save('draft').catch(swallow); });
   $('ask-change').addEventListener('click', function () {
-    window.scrollTo({ top: $('ai-panel').offsetTop - 80, behavior: 'smooth' });
+    scrollChatToEnd();
     $('chat-input').focus();
   });
   $('lesson-form').addEventListener('submit', function (e) {
@@ -553,9 +557,18 @@
   var chat = [];
   function addMsg(role, text, html) {
     var d = document.createElement('div'); d.className = 'msg ' + role;
-    if (html) d.innerHTML = html; else d.textContent = text;
-    $('chat-log').appendChild(d); $('chat-log').scrollTop = 1e9; return d;
+    if (role === 'sys' && /…$/.test(text || '')) d.className += ' thinking';
+    var b = document.createElement('div'); b.className = 'bubble';
+    if (html) b.innerHTML = html; else b.textContent = text;
+    if (role === 'bot') { var a = document.createElement('span'); a.className = 'avatar'; a.innerHTML = '<img src="assets/img/logo.webp" alt="">'; d.appendChild(a); }
+    d.appendChild(b);
+    $('chat-log').appendChild(d); scrollChatToEnd(); return d;
   }
+  // The box grows with the message, like a chat app.
+  function growInput() {
+    var box = $('chat-input'); box.style.height = 'auto'; box.style.height = Math.min(220, box.scrollHeight) + 'px';
+  }
+  $('chat-input').addEventListener('input', growInput);
   function greet(n) {
     $('chat-log').innerHTML = ''; chat = [];
     var tp = topicOf(n || activeTopic);
@@ -572,6 +585,7 @@
     });
     edit(lesson, true);
     addMsg('sys', 'Draft below. Check the answers, then Post as Live, Save as draft, or ask for a change.');
+    window.requestAnimationFrame(function () { window.scrollTo({ top: $('draft-card').offsetTop - 130, behavior: 'smooth' }); });
   }
   var POST_RE = /^(please\s+)?(post|publish|go\s+live|make\s+it\s+live|put\s+it\s+(up|live|online))(\s+(it|this|that|the\s+lesson|now))?(\s+(as\s+)?live)?(\s+now)?[.!\s]*$/i;
   // Turn an .srt / .sbv / .vtt caption file (or pasted transcript) into plain words.
@@ -591,7 +605,7 @@
   }
   function scriptState(note) {
     var words = $('ai-script').value.trim() ? $('ai-script').value.trim().split(/\s+/).length : 0;
-    $('ai-script-state').textContent = words ? 'Transcript attached' + (note ? ' from ' + note : '') + ': ' + words + ' words. It goes to the assistant with every message.' : 'Not attached. The assistant uses it to write the explanation and questions from what you actually say in the video.';
+    $('ai-script-state').textContent = words ? 'Attached' + (note ? ' (' + note + ')' : '') + ': ' + words + ' words, sent with every message' : 'Not attached';
     $('ai-script-state').style.color = words ? 'var(--ok)' : '';
   }
   $('ai-script-file').addEventListener('change', function () {
@@ -602,11 +616,12 @@
     this.value = '';
   });
   $('ai-script').addEventListener('input', function () { scriptState(''); });
+  $('script-help-toggle').addEventListener('click', function () { var open = $('script-help').classList.contains('hidden'); show('script-help', open); if (open) $('ai-script').focus(); });
 
   function send() {
     var text = $('chat-input').value.trim();
     if (!text) return;
-    $('chat-input').value = '';
+    $('chat-input').value = ''; growInput();
     addMsg('me', text);
     chat.push({ role: 'user', content: text });
 

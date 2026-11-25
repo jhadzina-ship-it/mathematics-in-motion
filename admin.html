@@ -51,23 +51,49 @@
     .list .small { display: flex; gap: 6px; align-items: center; color: var(--ink-2); margin-top: 2px; }
     .list .none { padding: 4px 10px 8px 40px; font-size: .85rem; color: var(--ink-3); margin: 0; }
 
-    /* chat */
-    .chat-log { display: flex; flex-direction: column; gap: 8px; min-height: 320px; max-height: 60vh; overflow: auto; padding: 14px; margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
-    .chat-log .msg { padding: 9px 12px; border-radius: 12px; max-width: 88%; font-size: .95rem; line-height: 1.4; white-space: pre-wrap; }
-    .chat-log .me { align-self: flex-end; background: var(--blue); color: #fff; }
-    .chat-log .bot { align-self: flex-start; background: #fff; border: 1px solid var(--line); }
-    .chat-log .sys { align-self: center; color: var(--ink-2); font-size: .8rem; text-align: center; }
-    .chat-log .msg a { color: inherit; text-decoration: underline; }
-    .chips { margin-top: 10px; gap: 8px; }
-    .chips .chip { padding: 6px 12px; font-size: .85rem; }
-    .chat-row { display: flex; gap: 10px; align-items: stretch; margin-top: 10px; }
-    .chat-row textarea { flex: 1; min-width: 0; min-height: 56px; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; resize: vertical; }
-    .chat-row textarea:focus, .script-box textarea:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
-    .chat-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    .script-box summary { cursor: pointer; font-size: .85rem; color: var(--ink-2); }
-    .script-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
-    .script-row .btn { cursor: pointer; }
-    .script-box textarea { width: 100%; margin-top: 6px; min-height: 80px; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+    /* chat view (ChatGPT-like): replaces the topics while a subtopic is being made */
+    .chat-view { margin: -8px -16px 0; background: #fff; }
+    .cv-top { position: sticky; top: 64px; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: #fff; border-bottom: 1px solid var(--line); }
+    .cv-back { display: inline-flex; align-items: center; gap: 4px; background: none; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px 8px 10px; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; white-space: nowrap; }
+    .cv-back:hover { background: var(--panel); }
+    .cv-title { flex: 1; min-width: 0; }
+    .cv-title h2 { margin: 0; font-size: 1.15rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #cv-step { white-space: nowrap; }
+    @media (max-width: 600px) { #cv-step { display: none; } }
+    .cv-stream { max-width: 820px; margin: 0 auto; padding: 24px 16px 24px; min-height: calc(100vh - 360px); }
+    .chat-log { display: flex; flex-direction: column; gap: 22px; }
+    .chat-log .msg { display: flex; gap: 14px; align-items: flex-start; font-size: 1.05rem; line-height: 1.55; }
+    .chat-log .msg .bubble { white-space: pre-wrap; min-width: 0; }
+    .chat-log .me { justify-content: flex-end; }
+    .chat-log .me .bubble { background: var(--chip); border-radius: 20px 20px 4px 20px; padding: 12px 18px; max-width: 78%; }
+    .chat-log .bot .bubble { padding-top: 6px; max-width: 100%; }
+    .chat-log .avatar { width: 36px; height: 36px; border-radius: 50%; flex: none; border: 1px solid var(--line); display: grid; place-items: center; background: #fff; overflow: hidden; }
+    .chat-log .avatar img { width: 30px; height: 30px; object-fit: contain; }
+    .chat-log .sys { justify-content: center; color: var(--ink-2); font-size: .9rem; }
+    .chat-log .sys .bubble { text-align: center; }
+    .chat-log .sys.thinking .bubble::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--blue); margin-right: 8px; vertical-align: middle; animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+    .chat-log .msg a { color: var(--blue); text-decoration: underline; }
+    .cv-stream > .card { margin: 22px 0 0 50px; }
+    @media (max-width: 600px) { .cv-stream > .card { margin-left: 0; } }
+    .cv-composer { position: sticky; bottom: 0; z-index: 4; background: #fff; padding: 12px 16px 10px; border-top: 1px solid var(--line); }
+    .cv-inner { max-width: 820px; margin: 0 auto; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+    .chips .chip { padding: 6px 12px; font-size: .85rem; background: #fff; border-color: var(--line); }
+    .chips .chip:hover { border-color: var(--blue); color: var(--blue); }
+    .composer { display: flex; align-items: flex-end; gap: 8px; border: 1.5px solid var(--line); border-radius: 26px; padding: 8px 8px 8px 20px; background: #fff; box-shadow: 0 4px 18px rgba(0,0,0,.06); }
+    .composer:focus-within { border-color: var(--blue); box-shadow: 0 4px 22px rgba(0,86,210,.14); }
+    .composer textarea { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; font: inherit; font-size: 1.05rem; line-height: 1.5; padding: 8px 0; max-height: 220px; background: transparent; color: var(--ink); }
+    .composer .send { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--blue); color: #fff; display: grid; place-items: center; cursor: pointer; flex: none; }
+    .composer .send:hover { background: var(--blue-dark); }
+    .composer .send:disabled { background: var(--chip); color: var(--ink-3); cursor: default; }
+    .chat-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+    .chat-foot .btn { cursor: pointer; }
+    .foot-state { flex: 1; min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .script-help { margin-top: 8px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+    .script-help textarea { width: 100%; min-height: 90px; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; resize: vertical; }
+    .script-help textarea:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+    .cv-note { margin: 6px 0 0; font-size: .78rem; color: var(--ink-3); text-align: center; }
     .linkish { background: none; border: 0; padding: 0; font: inherit; font-size: .85rem; color: var(--blue); cursor: pointer; text-decoration: underline; }
     #view-lesson + .linkish { margin-left: 14px; }
 
@@ -137,10 +163,6 @@
     .sub a.open { color: var(--blue); font-weight: 600; }
     .branch-hint { font-size: .85rem; color: var(--ink-2); margin: 0 0 8px; }
     .add-sub { margin-top: 10px; }
-    .slot { margin-top: 12px; }
-    .post-panel { border: 2px solid var(--blue); border-radius: 12px; padding: 16px; background: var(--blue-soft); }
-    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
-    .post-panel .card { background: #fff; }
     .branch.add-topic { border-style: dashed; }
     .steps-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 16px; }
     @media (max-width: 700px) { .steps-strip { grid-template-columns: 1fr; } }
@@ -207,50 +229,21 @@
 
     <section id="editor" class="hidden" style="padding-top:0">
       <div class="wrap">
-        <div class="steps-strip" id="steps"></div>
-        <p class="help" style="margin:0 0 14px;font-size:.95rem">Topics are the branches; each subtopic inside a topic is one video lesson. Students take the subtopics of a topic in order, so the next number is given automatically.</p>
-        <div id="tree" class="tree"></div>
+        <div id="topics-view">
+          <div class="steps-strip" id="steps"></div>
+          <p class="help" style="margin:0 0 14px;font-size:.95rem">Topics are the branches; each subtopic inside a topic is one video lesson. Students take the subtopics of a topic in order, so the next number is given automatically.</p>
+          <div id="tree" class="tree"></div>
+        </div>
 
-        <div id="post-panel" class="post-panel hidden">
-          <div class="panel-head">
-            <div><div class="eyebrow" id="panel-topic"></div><h3 id="panel-title" style="margin:2px 0 0"></h3></div>
-            <button class="btn btn-ghost btn-sm" type="button" id="panel-close">Close</button>
+        <div id="post-panel" class="chat-view hidden">
+          <div class="cv-top">
+            <button class="cv-back" type="button" id="panel-close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg> Back to topics</button>
+            <div class="cv-title"><div class="eyebrow" id="panel-topic" style="margin:0"></div><h2 id="panel-title"></h2></div>
+            <span class="pill" id="cv-step">Step 2 · Add a subtopic</span>
           </div>
-          <div class="card" id="ai-panel" style="border-color:var(--blue)">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-              <h3 style="margin:0">Add this subtopic with the assistant</h3>
-              <span class="pill">Nothing goes live until you say so</span>
-            </div>
+
+          <div class="cv-stream" id="ai-panel">
             <div id="chat-log" class="chat-log" aria-live="polite"></div>
-            <div class="chips" id="chips">
-              <button class="chip" type="button" data-say="New video: ">New video</button>
-              <button class="chip" type="button" data-say="Make the questions harder.">Make the questions harder</button>
-              <button class="chip" type="button" data-say="Add one more question.">Add one more question</button>
-              <button class="chip" type="button" data-say="Change question 3: ">Change question 3</button>
-              <button class="chip" type="button" data-say="Use Form 4 level.">Use Form 4 level</button>
-              <button class="chip" type="button" data-say="Post it">Post it</button>
-            </div>
-            <div class="chat-row">
-              <label class="sr-only" for="chat-input">Message</label>
-              <textarea id="chat-input" placeholder="e.g. New video https://youtu.be/… on angle of elevation, Form 3, five questions set at Victoria Falls"></textarea>
-              <button class="btn btn-primary" type="button" id="chat-send">Send</button>
-            </div>
-            <div class="chat-foot">
-              <div class="script-box" style="flex:1;min-width:200px">
-                <div class="script-row">
-                  <label class="btn btn-sm" for="ai-script-file">Attach the video's transcript</label>
-                  <input type="file" id="ai-script-file" accept=".srt,.sbv,.vtt,.txt" class="sr-only">
-                  <span class="muted small" id="ai-script-state">Not attached. The assistant uses it to write the explanation and questions from what you actually say in the video.</span>
-                </div>
-                <details><summary>Where to get it, or paste the words instead</summary>
-                  <p class="muted small" style="margin:6px 0">YouTube Studio → Content → open the video → <strong>Subtitles</strong> → on the <em>English (automatic)</em> row open the ⋮ menu → <strong>Download</strong> (.srt or .sbv). Or on the video page press <em>…more</em> → <em>Show transcript</em>, copy it, and paste it here. Your own script works just as well.</p>
-                  <textarea id="ai-script" placeholder="The words spoken in the video…"></textarea>
-                </details>
-              </div>
-              <button class="linkish" type="button" id="chat-reset">Start over</button>
-            </div>
-            <div class="status" id="ai-status"></div>
-          </div>
 
           <div class="card hidden" id="draft-card" style="margin-top:20px">
             <div class="d-head">
@@ -362,6 +355,38 @@
               </div>
             </div>
           </form>
+          </div>
+
+          <div class="cv-composer">
+            <div class="cv-inner">
+              <div class="chips" id="chips">
+                <button class="chip" type="button" data-say="New video: ">New video</button>
+                <button class="chip" type="button" data-say="Make the questions harder.">Make the questions harder</button>
+                <button class="chip" type="button" data-say="Add one more question.">Add one more question</button>
+                <button class="chip" type="button" data-say="Change question 3: ">Change question 3</button>
+                <button class="chip" type="button" data-say="Use Form 4 level.">Use Form 4 level</button>
+                <button class="chip" type="button" data-say="Post it">Post it</button>
+              </div>
+              <div class="composer">
+                <label class="sr-only" for="chat-input">Message</label>
+                <textarea id="chat-input" rows="1" placeholder="Paste the YouTube link and say what the video covers…"></textarea>
+                <button class="send" type="button" id="chat-send" aria-label="Send"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+              </div>
+              <div class="chat-foot">
+                <label class="btn btn-sm btn-outline" for="ai-script-file"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><path d="M21 12.5 12.6 21a5.5 5.5 0 0 1-7.8-7.8l9-9a3.5 3.5 0 0 1 5 5l-9 9a1.5 1.5 0 0 1-2.1-2.1l8.3-8.3"/></svg>Attach the video's transcript</label>
+                <input type="file" id="ai-script-file" accept=".srt,.sbv,.vtt,.txt" class="sr-only">
+                <span class="muted small foot-state" id="ai-script-state">Not attached</span>
+                <button class="linkish" type="button" id="script-help-toggle">Where to get it, or paste the words</button>
+                <button class="linkish" type="button" id="chat-reset">Start over</button>
+              </div>
+              <div class="script-help hidden" id="script-help">
+                <p class="muted small" style="margin:0 0 6px">YouTube Studio → Content → open the video → <strong>Subtitles</strong> → on the <em>English (automatic)</em> row open the ⋮ menu → <strong>Download</strong> (.srt or .sbv), then attach the file. Or on the video page press <em>…more</em> → <em>Show transcript</em>, copy it, and paste it below. Your own script works just as well. The assistant uses it to write the explanation and questions from what you actually say in the video.</p>
+                <textarea id="ai-script" placeholder="The words spoken in the video…"></textarea>
+              </div>
+              <div class="status" id="ai-status"></div>
+              <p class="cv-note">Nothing goes live until you press <strong>Post as Live</strong> or say "post it". Enter sends, Shift+Enter makes a new line.</p>
+            </div>
+          </div>
         </div>
 
         <p class="small muted" style="margin-top:28px"><span id="whoami"></span> &middot; <button class="linkish" type="button" id="signout">Sign out</button></p>
@@ -418,6 +443,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/site.js"></script>
-  <script src="assets/admin.js?v=12"></script>
+  <script src="assets/admin.js?v=13"></script>
 </body>
 </html>
