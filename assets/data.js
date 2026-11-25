@@ -111,7 +111,7 @@
     return '<article class="course-card' + (live && open ? '' : ' coming') + '">' +
       '<div class="course-thumb">' + art + '</div>' +
       '<div class="course-body">' +
-      '<div class="provider">' + MARK + ' Mathematics in Motion</div>' +
+      '<div class="provider"><img src="assets/img/logo.webp" alt="" style="width:16px;height:16px;border-radius:50%"> Mathematics in Motion</div>' +
       '<h3>' + (live && open ? '<a href="' + href + '">' + esc(l.title) + '</a>' : esc(l.title)) + '</h3>' +
       '<p class="muted small" style="margin:0">' + esc(l.summary) + '</p>' +
       '<div class="course-meta"><span>Lesson ' + esc(l.number) + '</span><span>·</span><span>' + meta + '</span></div>' +

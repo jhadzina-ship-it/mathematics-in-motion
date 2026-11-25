@@ -48,6 +48,7 @@ img, svg, iframe { max-width: 100%; }
 .brand { display: flex; align-items: center; gap: 8px; color: var(--blue); font-weight: 700; font-size: 1.35rem; letter-spacing: -.02em; white-space: nowrap; }
 .brand:hover { text-decoration: none; }
 .brand svg { width: 28px; height: 28px; }
+.brand-logo { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
 .nav { display: flex; gap: 2px; margin-left: 8px; }
 .nav a { padding: 8px 12px; border-radius: 6px; color: var(--ink); font-weight: 600; font-size: .95rem; white-space: nowrap; }
 .nav a:hover { background: var(--blue-soft); color: var(--blue); text-decoration: none; }
