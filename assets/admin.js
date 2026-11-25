@@ -175,7 +175,7 @@
       return '<details class="branch' + (inTopic.length ? '' : ' empty') + '" data-topic="' + g.number + '"' + (openTopics[g.number] ? ' open' : '') + '>' +
         '<summary><span class="t-num">' + g.number + '</span><span class="t-name">Topic ' + g.number + ' · ' + esc(g.name) + (g.own ? ' <span class="pill pill-amber">your own topic</span>' : '') + (forms ? '<small>' + esc(forms) + '</small>' : (g.description ? '<small>' + esc(g.description) + '</small>' : '')) + '</span>' +
         '<span class="t-count">' + (inTopic.length ? inTopic.length + ' subtopic' + (inTopic.length === 1 ? '' : 's') : 'no subtopics yet') + '</span></summary>' +
-        '<div class="branch-body">' + (rows || '<p class="branch-hint">Nothing posted in this topic yet.</p>') +
+        '<div class="branch-body">' + (rows || '<p class="branch-hint">Nothing posted in this topic yet.' + (g.own ? ' <button class="linkish" type="button" data-remove-topic="' + g.number + '">Remove this topic</button>' : '') + '</p>') +
         '<div class="add-sub"><button class="btn btn-primary btn-sm" type="button" data-add="' + g.number + '">+ Add a subtopic (' + nextNumber(g.number) + ')</button></div>' +
         '<div class="slot" data-slot="' + g.number + '"></div></div></details>';
     }).join('') +
@@ -190,6 +190,18 @@
         e.preventDefault();
         var l = lessons.filter(function (x) { return x.id === a.getAttribute('data-id'); })[0];
         if (l) edit(l);
+      });
+    });
+    tree.querySelectorAll('[data-remove-topic]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var n = parseInt(b.getAttribute('data-remove-topic'), 10);
+        if (lessons.some(function (l) { return lessonTopic(l) === n; })) return;
+        if (!confirm('Remove topic ' + n + '? It has no subtopics.')) return;
+        sb.from('topics').delete().eq('number', n).then(function (r) {
+          if (r.error) { alert('Could not remove it: ' + r.error.message); return; }
+          if (activeTopic === n) activeTopic = 0;
+          loadOwnTopics().then(renderTree);
+        });
       });
     });
     tree.querySelectorAll('[data-add]').forEach(function (b) {
